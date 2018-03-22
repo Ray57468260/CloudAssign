@@ -18,15 +18,15 @@
 			<div class="row inner-xs">
 				<!--左侧-->
 				<div class="col-md-6 border-right">
-					<div class="col-md-12">
+					<div id="add-import" class="col-md-12">
 						<h3 class="sidelines text-center">
 							<span>新建题库</span>
 						</h3>
-						<a id="import-one-btn" class="btn btn-small" href="javascript:void(0);">新建单条试题</a>
-						<a id="import-bulk-btn" class="btn btn-small" href="javascript:void(0);">批量导入试题</a>
+						<a id="import-one-btn" class="btn btn-small" @click="OneShow">新建单条试题</a>
+						<a id="import-bulk-btn" class="btn btn-small" @click="BulkShow">批量导入试题</a>
 
 						<!--导入单条试题-->
-						<div id="import-one" style="padding: 5px; margin: 20px;">
+						<div id="import-one" style="padding: 5px; margin: 20px;" v-show="one_show">
 							<h4 class="sidelines text-center" style="font-weight: normal;">
 								<span>导入单条试题</span>
 							</h4>
@@ -68,7 +68,7 @@
 							</form>
 						</div>
 						<!--批量导入试题-->
-						<div id="import-bulk" style="padding: 5px; margin: 20px; display: none;">
+						<div id="import-bulk" style="padding: 5px; margin: 20px;" v-show="bulk_show">
 							<h4 class="sidelines text-center" style="font-weight: normal;">
 								<span>批量导入试题</span>
 							</h4>
@@ -273,15 +273,32 @@ jQuery.translate = function(e_type){
 };
 </script>
 
+<!--获取单条试题填写表单-->
 <script>
 var vm = new Vue({
-  el: '#import-one',
+  el: '#add-import',
   data: {
     courseID: '',
     e_type:'',
     html : '',
+
+	one_show:true,
+	bulk_show:false,
+  },
+
+  methods:{
+  	//切换功能
+	OneShow: function(){
+		this.one_show = true,
+		this.bulk_show = false
+	},
+	BulkShow: function(){
+		this.one_show = false,
+		this.bulk_show = true
+	}
   },
   watch:{
+  	//提供单条试题用表单
   	e_type: function(e_type){
   		var url = 'add/'+e_type+"/";
   		axios.get(url)
@@ -296,28 +313,6 @@ var vm = new Vue({
 })
 </script>
 
-<!--获取单条试题填写表单
-<script>
-	$("#inpute_type_one").change(function(){
-		var e_type = $(this).val();
-		var url = 'add/'+e_type+"/";
-			csrftoken = $.cookie("csrftoken");
-		$("#one-form-sec").load(url)
-	})
-</script>
--->
-
-<!--单条、批量上传切换-->
-<script>
-	$("#import-bulk-btn").click(function(){
-		$("#import-bulk").show('slow');
-		$("#import-one").hide('slow');
-	})
-	$("#import-one-btn").click(function(){
-		$("#import-bulk").hide('slow');
-		$("#import-one").show('slow');
-	})
-</script>
 
 <!-- 试题批量上传 -->
 <script>
