@@ -63,7 +63,7 @@
 										</select>
 									</div>
 								</div>
-								<div  v-html="one_form_edit">
+								<div  v-html="html">
 								</div>
 							</form>
 						</div>
@@ -278,17 +278,15 @@ var vm = new Vue({
   el: '#import-one',
   data: {
     courseID: '',
-    e_type:''
-    one_form_edit : '',
+    e_type:'',
+    html : '',
   },
   watch:{
   	e_type: function(e_type){
-  		console.log(e_type)
   		var url = 'add/'+e_type+"/";
   		axios.get(url)
 		  .then(function (response) {
-		    console.log(response);
-		    vm.one_form_edit = response;
+	    	vm.html = response.data;
 		  })
 		  .catch(function (error) {
 		    console.log(error);
