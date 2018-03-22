@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}我的订阅课程{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section id="my-subscriptions" class="inner-bottom-xs">
+			<h1>我的订阅课程</h1>
+		</section>
+		<section id="content" class="border-top-lg">
+			<div class="row">
+				{% if my_courses %}
+					{% for course in my_courses %}
+					<div class="col-sm-12 inner-right-xs inner-top-xs inner-bottom-xs border-bottom-xs">
+					<div class="col-md-6">
+					<p style="font-weight: bold;"><a href="/dispatch/{{ course.courseID }}/">课程名：{{ course.course }}</a></p>
+					<p style="font-size: 16px;">授课教师：{{ course.teacher.name }}</p>
+					<p style="font-size: 16px;">课程简介：{{ course.intro }}</p>
+					</div>
+					<div class="col-md-6 inner-left-md inner-top-xs" align="right">
+						<button class="cancel-subs btn btn-small btn-red" value="{{ course.courseID }}">取消订阅</button>
+					</div>
+					</div>
+					{% endfor %}
+				{% else %}
+					<h3 class="no-subs">当前没有订阅课程</h3>
+				{% endif %}
+
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<h3>可订阅的课程</h3>
+					<ul>
+					{% for course in courses_list %}
+						<li>
+							<div class="col-md-6">
+							<button class="subs-btn btn btn-small" value="{{ course.courseID }}">订阅</button>&nbsp;
+							<span class="courseID">{{ course.course }}</span>
+							</div>
+						</li>
+					{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="de-subscription" tabindex="-1" role="dialog" aria-labelledby="de-subscription" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="de-subscription">
+					确认取消
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>确认取消订阅？</h2>
+					<p>取消订阅后，你提交过的答案仍将会保留，确认取消吗？</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="desubs-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" id="desubs-cancel" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="subs-success" tabindex="-1" role="dialog" aria-labelledby="subs-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="subs-success">
+					已订阅
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>成功订阅课程</h2>
+					<p>成功订阅课程。</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="subs-already" tabindex="-1" role="dialog" aria-labelledby="subs-already" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="subs-already">
+					已订阅
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>你已订阅课程</h2>
+					<p>你已订阅课程，请勿重复订阅。</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<!-- 使用ajax进行搜索更新、按钮动画、动态更新已订阅课程和未订阅课程列表；使用post提交订阅选项、取消订阅-->
+
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+	<!-- 订阅 -->
+	<script>
+	$(".subs-btn").click(function(){
+	event.preventDefault();
+	var data = {
+            'courseID': $(this).val(),
+        };
+	$.ajax({
+	    url: "",
+	    type: "POST",
+	    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+	    data: data,
+	    success: function(result) {   
+			console.log(result);
+			if (result['result'] == true ){
+				$("#subs-success").modal('show');
+				$('.close-btn').click(function(){
+					location.reload(true);
+			});
+			}else{
+				$("#subs-already").modal('show');
+			}
+	    }
+	});
+	return false;
+	});
+	</script>
+
+	<!-- 取消订阅 -->
+	<script>
+	$(".cancel-subs").on("click",function(){
+	event.preventDefault();
+	courseID = $(this).val();
+		$("#de-subscription").modal('show');
+		$("#desubs-confirm").click(function(){
+			var data = {
+		            'courseID': courseID,
+		        };
+			$.ajax({
+			    url: "desubs/",
+			    type: "POST",
+			    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			    data: data,
+			    success: function(result) {   
+					console.log(result)
+					if (result['result'] == true){
+						location.reload(true);
+					}
+			    }
+			})
+		})
+		$('.close-btn').click(function(){
+			$('#de-subscription').modal('hide');
+		});
+	});
+	</script>
+
+{% endblock javascript %}
+

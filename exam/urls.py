@@ -1,0 +1,35 @@
+from django.urls import path
+from .views import *
+
+
+urlpatterns = [
+    path(r'teacher/build/draft/<int:courseID>/<int:draft_id>/',
+         exam_draft.as_view(), name="exam_draft"),
+    path(r'teacher/build/auto/',
+         exam_auto_generate, name="exam_auto_generate"),
+    path(r'teacher/build/',
+         exam_build.as_view(), name="exam_build"),
+    path(r'teacher/<int:courseID>/delete/<int:id>/',
+         exam_delete, name="exam_delete"),
+    path(r'teacher/bank/',
+         bank_manage.as_view(), name="bank_manage"),
+    path(r'teacher/bank/bulk/',
+         bank_bulk.as_view(), name="bank_manage_bulk"),
+    path(r'teacher/bank/query/editable/',
+         bank_query, {'template_name': 'partials/e_candidate_editable.html'}, name="bank_query_editable"),
+    path(r'teacher/bank/query/',
+         bank_query, name="bank_query"),
+    path(r'teacher/bank/drop/',
+         bank_drop, name="bank_drop"),
+    path(r'teacher/bank/retrieve/',
+         exam_retrieve, name="exam_retrieve"),
+    path(r'teacher/bank/delete/',
+         bank_manage.as_view(), name="bank_delete"),
+    path(r'teacher/bank/add/<slug:e_type>/',
+         bank_add, name="bank_add"),
+    path(r'teacher/bank/edit/<slug:e_type>/<int:e_id>/',
+         bank_edit, name="bank_edit"),
+    path(r'teacher/bank/export/',
+         bank_export, name="bank_export"),
+    path(r'tools/', extract_from_docx.as_view(), name="tools"),
+]

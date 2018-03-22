@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}个人信息修改{% endblock %}
+
+{% block content %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+	<section>
+		<h1 align="middle">修改个人信息</h1>
+	</section>
+
+	<section class="border-top-md">
+		<div class="row">
+			<div class="col-sm-12 inner-right-xs inner-bottom-xs border-right">
+				<div class="text-center inner-top-xs">
+					<div class="col-md-8 col-md-offset-2 text-center">
+						<h4 class="sidelines text-center">
+							<span>个人信息页</span>
+						</h4>
+						<br />
+						<p><strong>{% if user.is_teacher %}职工号：{% else %}学号：{% endif %}{{ user.user_id }}</strong></p>
+						<br />
+						<form action="{% url 'users_profile' %}" method="POST" class="form-horizontal text-left">
+							{% csrf_token %}
+							<div class="form-group">
+								<label class="col-md-2">性别：</label>
+								<div class="col-md-10">
+									<select name="gender" id="gender" value="{{ user.get_gender_display }}">
+										<option value="M">男</option>
+										<option value="F">女</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2">姓名：</label>
+								<div class="col-md-10">
+									<input type="text" class="form-control" name="name" value="{{ user.name }}" placeholder="必填">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2">邮箱：</label>
+								<div class="col-md-10">
+									<input type="text" class="form-control" name="email" value="{{ user.email }}" placeholder="必填">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2">电话：</label>
+								<div class="col-md-10">
+									<input type="text" class="form-control" name="phonenumber" value="{% if user.phonenumber %}{% else %} {% endif %}" placeholder="选填">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2">学院：</label>
+								<div class="col-md-10">
+									<input type="text" class="form-control" name="dept" value="{{ user.dept }}" placeholder="必填">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2">专业：</label>
+								<div class="col-md-10">
+									<input type="text" class="form-control" name="major" value="{{ user.major }}" placeholder="必填">
+								</div>
+							</div>
+						<button type="submit" class="btn btn-blue btn-block">保&#12288;存&#12288;更&#12288;改</button>
+						</form>
+						<a href="{% url 'users_password_reset' %}" class="btn btn-navy btn-small btn-block">重&#12288;置&#12288;密&#12288;码</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	</div>
+</div>
+
+{% endblock %}
+{% block javascript %}
+
+{% endblock %}

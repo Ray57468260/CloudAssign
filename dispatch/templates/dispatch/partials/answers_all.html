@@ -1,0 +1,154 @@
+
+{% load custom_filters %}
+<section class="inner-bottom-xs inner-top-xs">
+	<div class="row">
+	<h3 class="sidelines text-center"><span>我的答案</span></h3>
+		<div class="col-sm-12 inner-right-xs">
+			{% if answers %}
+			{% for answer in answers %}
+				<div id="{{ answer.id }}" class="panel-group">
+				  	<div class="panel panel-default">
+	  				<!--正常提交且未被批改的答案-->
+  					{% if answer.status %}
+	  				<div class="normal-answers">
+				  		<div class="panel-heading">
+				  			<h4 class="panel-title">
+				  				<a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#{{ answer.id }}" href="#content{{ answer.id }}" aria-expanded="false">
+		  							<p>提交：{{ answer.subject }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ answer.created_at|timesince }}&nbsp;&nbsp;前提交&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;待评分</p>
+		  							<span class="fa"></span>
+				  				</a>
+				  			</h4>
+				  		</div>
+				  		<div id="content{{ answer.id }}" class="panel-collapse collapse" aria-expanded="false">
+				  			<div class="panel-body">		
+							  	<p>答案标题：{{ answer.subject }}</p>
+							  	<p>正文：{{ answer.content }}</p>
+			  				{% if answer.file %}
+			  					<a href="/media/{{ answer.file }}" style="display:block">附件：{{ answer.file | slice_filepath:1 }}</a>
+			  					<br/>
+			  				{% else %}
+			  					<p>附件：无</p>
+			  				{% endif %}
+								<button class="delete-btn btn btn-danger btn-small" style="background:#d9534f;" value="{{ answer.id }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;答&nbsp;案</button>
+				  			</div>
+				  		</div>
+			  		</div>
+	  				<!--被驳回的答案-->
+  					{% elif not answer.accepted %}
+	  				<div class="normal-answers">
+				  		<div class="panel-heading">
+				  			<h4 class="panel-title">
+				  				<a class="panel-toggle collapsed fa" data-toggle="collapse" data-parent="#{{ answer.id }}" href="#content{{ answer.id }}" aria-expanded="false" style="background:#FFFF99">
+		  							<p>提交：{{ answer.subject }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ answer.created_at|timesince }}&nbsp;&nbsp;前提交&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;被驳回</p>
+		  							<span class="fa"></span>
+				  				</a>
+				  			</h4>
+				  		</div>
+				  		<div id="content{{ answer.id }}" class="panel-collapse collapse" aria-expanded="false">
+				  			<div class="panel-body">		
+							  	<p>答案标题：{{ answer.subject }}</p>
+							  	<p>正文：{{ answer.content }}</p>
+			  				{% if answer.file %}
+			  					<a href="/media/{{ answer.file }}" style="display:block">附件：{{ answer.file | slice_filepath:1 }}</a>
+			  					<br/>
+			  				{% else %}
+			  					<p>附件：无</p>
+			  				{% endif %}
+			  					<p>驳回意见：{{ answer.suggestions }}</p>
+								<button class="delete-btn btn btn-danger btn-small" style="background:#d9534f;" value="{{ answer.id }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;答&nbsp;案</button>
+				  			</div>
+				  		</div>
+			  		</div>
+	  				<!--已被批改的答案-->
+  					{% else %}
+	  				<div class="normal-answers">
+				  		<div class="panel-heading">
+				  			<h4 class="panel-title">
+				  				<a class="panel-toggle collapsed fa" data-toggle="collapse" data-parent="#{{ answer.id }}" href="#content{{ answer.id }}" aria-expanded="false" style="background:#CCFFCC">
+		  							<p>提交：{{ answer.subject }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ answer.created_at|timesince }}&nbsp;&nbsp;前提交&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;已评分</p>
+		  							<span class="fa"></span>
+				  				</a>
+				  			</h4>
+				  		</div>
+				  		<div id="content{{ answer.id }}" class="panel-collapse collapse" aria-expanded="false">
+				  			<div class="panel-body">		
+							  	<p>答案标题：{{ answer.subject }}</p>
+							  	<p>正文：{{ answer.content }}</p>
+			  				{% if answer.file %}
+			  					<a href="/media/{{ answer.file }}" style="display:block">附件：{{ answer.file | slice_filepath:1 }}</a>
+			  					<br/>
+			  				{% else %}
+			  					<p>附件：无</p>
+			  				{% endif %}
+			  					<p>评分：{{ answer.get_grade_display }}</p>
+			  					<p>批改意见：{{ answer.suggestions }}</p>
+				  			</div>
+				  		</div>
+			  		</div>
+			  		{% endif %}
+				  	</div>
+			  	</div>
+			{% endfor %}
+			{% else %}
+			<p>未提交答案</p>
+		{% endif %}
+		</div>
+	</div>
+</section>
+
+<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="modal-delete" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete">
+					确认删除
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>确认删除该答案？</h2>
+					<p>该答案，连同附件将被删除，确认删除吗？</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="delete-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" id="delete-cancel" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<!-- 删除答案及模态窗触发 -->
+<script>
+$(".delete-btn").click(function(){
+event.preventDefault();
+var pk= $(this).val();
+var data = {
+        'pk': pk,
+    };
+$('#modal-delete').modal('show');
+
+$('#delete-confirm').click(function(){
+	$.ajax({
+	    url: "/dispatch/answer/delete/"+pk+"/",
+	    type: "POST",
+	    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+	    data: data,
+	    success: function(result){   
+			console.log(result);
+	    	if (result['result'] == true){
+				location.reload(true);
+			}
+	    }
+	})
+});
+});
+</script>

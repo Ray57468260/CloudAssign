@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}首页{% endblock %}
+{% block content %}
+    <section id="image-background-3" class="dark-bg img-bg-softer" style="background-image: url(/static/images/pattern-background02.png);">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2 padding-top-80 padding-bottom-60">
+                  <h1 class="text-center">云作业与无纸化</h1>
+                    <p class="text-center">我们致力于帮助你在任何地点、任何时间，发布、提交、批改你的作业、考试卷
+                    </p>
+                    <p class="text-center">
+                        {% if request.user.is_teacher %}
+                      <a href="/dispatch/teacher/" class="btn btn-large">
+                        {% else %}
+                      <a href="/dispatch/student/" class="btn btn-large">
+                        {% endif %}
+                        <span class="text">现&#12288;在&#12288;开&#12288;始</span></a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="container home-spotlight">
+        <div class="col-sm-12">
+            <br />
+            <div class="sigma-content sigma-middle-line">
+            <span class="sigma-line-text">功能与特性</span>
+            </div>
+            <div class="features-list">
+                <div class="row">
+                    <div class="col-sm-4 text-center border-right">
+                        <span class="fa-stack fa-3x">
+                          <div class="fa fa-mobile-phone fa-1x clear-fixed"></div>
+                        </span>
+                        <h3>移动设备友好</h3>
+                        <p>我们针对移动设备（手机、平板）进行了更友好的页面设计，让您随时掌握课程信息</p>
+                    </div>
+                    <div class="col-sm-4 text-center border-right">
+                        <span class="fa-stack fa-3x">
+                          <div class="fa fa-bar-chart fa-1x"></div>
+                        </span>
+                        <h3>云数据分析</h3>
+                        <p>我们提供各种数据分析工具，精准掌握学生的答题情况</p>
+                    </div>
+                    <div class="col-sm-4 text-center border-right">
+                        <span class="fa-stack fa-3x">
+                          <div class="fa fa-check-square-o fa-1x"></div>
+                        </span>
+                        <h3>点名册</h3>
+                        <p>记录、统计作业的提交情况，已交未交一目了然</p>
+                    </div>
+                </div>
+            </div>
+                <br />
+            <div class="row">
+                <div class="col-sm-4 text-center border-right">
+                    <span class="fa-stack fa-3x">
+                      <div class="fa fa-coffee fa-1x"></div>
+                    </span>
+                    <h3>便捷易得</h3>
+                    <p>随时随地批改学生作业，不再受操作系统、设备的平台限制</p>
+                </div>
+                <div class="col-sm-4 text-center border-right">
+                    <span class="fa-stack fa-3x">
+                      <div class="fa fa-files-o fa-stack-1x"></div>
+                      <div class="fa fa-ban fa-stack-2x text-danger"></div>
+                    </span>
+                    <h3>作业无纸化</h3>
+                    <p>在线批改作业，告别沉重的作业本，不再有丢失作业本的情况</p>
+                </div>
+                <div class="col-sm-4 text-center border-right">
+                        <span class="fa-stack fa-3x">
+                          <div class="fa fa-magic fa-stack-1x"></div>
+                        </span>
+                    <h3>一键生成试卷</h3>
+                    <p>提供全套试卷创建和题库管理的解决方案，一键轻松生成考试卷</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+{% endblock %}

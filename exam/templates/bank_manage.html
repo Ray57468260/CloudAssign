@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}管理题库{% endblock title %}
+{% block content %}
+<style>
+	label{
+		font-size: 16px;
+	}	
+</style>
+<div class="row">
+	<div class="col-md-12 border-left">
+		<section class="text-right">
+			<h1>题库管理</h1>
+			<p style="font-size:14px;">您可以在此管理您的题库，包括创建、添加、删除和导出</p>
+			<br />
+		</section>
+		<section class="border-top-md">
+			<div class="row inner-xs">
+				<!--左侧-->
+				<div class="col-md-6 border-right">
+					<div class="col-md-12">
+						<h3 class="sidelines text-center">
+							<span>新建题库</span>
+						</h3>
+						<a id="import-one-btn" class="btn btn-small" href="javascript:void(0);">新建单条试题</a>
+						<a id="import-bulk-btn" class="btn btn-small" href="javascript:void(0);">批量导入试题</a>
+
+						<!--导入单条试题-->
+						<div id="import-one" style="padding: 5px; margin: 20px;">
+							<h4 class="sidelines text-center" style="font-weight: normal;">
+								<span>导入单条试题</span>
+							</h4>
+							<div class="inner-bottom-xs">
+								<div style="font-size: 12px;">
+									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+									<span style="margin:0px">请先选择题型，然后按照提供的表单格式填写；点击表单头可展开/隐藏表单。</span>
+								</div>
+							</div>
+							<form action="one/" method="POST" enctype="multipart/form-data" class="form-horizontal">
+								{% csrf_token %}
+								<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
+								<div class="form-group" style="margin: 0px;">
+									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
+									<div class="col-md-10">
+										<select name="courseID" id="one-courseID" class="form-control" style="width: 180px;" v-model="courseID">
+											<option value="">请选择课程</option>
+											{% for course in courses %}
+											<option value="{{ course.courseID }}">{{ course.course }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="form-group" style="margin: 0px;">
+									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
+									<div class="col-md-10">
+										<select name="e_type" id="inpute_type_one" class="form-control" style="width: 180px;" v-model="e_type">
+											<option value="">请选择题型</option>
+											<option value="s-choice">单选题</option>
+											<option value="m-choice">多选题</option>
+											<option value="judge">判断题</option>
+											<option value="s-answer">简答题</option>
+											<option value="blank">填空题</option>
+										</select>
+									</div>
+								</div>
+								<div  v-html="one_form_edit">
+								</div>
+							</form>
+						</div>
+						<!--批量导入试题-->
+						<div id="import-bulk" style="padding: 5px; margin: 20px; display: none;">
+							<h4 class="sidelines text-center" style="font-weight: normal;">
+								<span>批量导入试题</span>
+							</h4>
+							<div class="inner-bottom-xs">
+								<div style="font-size: 12px;">
+									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+									<span style="margin:0px">使用EXCEL作为模板文件(仅支持.xls格式)，请注意按照格式要求，并且文件编码必须为UTF8</span>
+								</div>
+								<div style="font-size: 12px;">
+									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+									<span style=" margin:0px">请下载模板，并按照格式要求填写。填写完成后，上传文件即可完成导入。
+									您也可以使用我们提供的标准化转换服务，详情请转到"定制工具"界面。</span>
+									<br />
+									<a href="/media/EXCEL题库模板.rar" style="color: green">下载EXCEL模板</a>
+								</div>
+							</div>
+							<form id="bulk-form" action="bulk/" method="POST" enctype="multipart/form-data" class="form-horizontal">
+								{% csrf_token %}
+								<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
+								<div class="form-group" style="margin: 0px;">
+									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
+									<div class="col-md-10">
+										<select name="courseID" id="bulk-courseID"class="form-control" style="width: 180px;">
+											{% for course in courses %}
+											<option value="{{ course.courseID }}">{{ course.course }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="form-group" style="margin: 0px;">
+									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
+									<div class="col-md-10">
+										<select name="e_type" id="inpute_type"class="form-control" style="width: 180px;">
+											<option value="s-choice">单选题</option>
+											<option value="m-choice">多选题</option>
+											<option value="judge">判断题</option>
+											<option value="s-answer">简答题</option>
+											<option value="blank">填空题</option>
+										</select>
+									</div>
+								</div>
+						        <div class="form-group" style="margin: 0px;">
+						        	<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">上传文件</label>
+									<div class="col-md-10">
+						        		<input id="id_file" type="file" name="file" />
+						        	</div>
+						        </div>
+					        	<button id="btn-import-bulk" class="btn btn-small btn-block btn-navy" type="submit">上传</button>
+							</form>
+						</div>
+					</div>
+					<!--编辑题库-->
+					<div class="col-md-12 inner-bottom-xs">
+						<h3 class="sidelines text-center">
+							<span>编辑题库</span>
+						</h3>
+						<div class="">
+							<div style="font-size: 12px;">
+								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+								<span style="margin:0px">从题库中选择任意试题，点击即可编辑试题内容；点击表单头可展开/隐藏表单。</span>
+							</div>
+							<div style="font-size: 12px;">
+								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+								<span style=" margin:0px">批量删除试题：先从右侧题库中选中需要删除的试题，然后点击下方的"批量删除试题"按钮即可批量删除。</span>
+								<br />
+							</div>
+						</div>
+						<div class="text-center">
+							<a id="del-bulk" class="btn btn-red btn-small" href="javascript:void(0);">批量删除试题</a>
+						</div>
+						<div class="hotizon-label text-center">
+							<h4 class="sidelines text-center" style="font-weight: normal;">
+								<span>批量导出题库</span>
+							</h4>
+							<label>选择题库：</label>
+							<select name="courseID" id="export-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;">
+								{% for course in courses %}
+								<option value="{{ course.courseID }}">{{ course.course }}</option>
+								{% endfor %}
+							</select>
+							<buitton id="export-bank-btn" class="btn btn-small" href="javascript:void(0);" style="">导出题库</button>
+						</div>
+						<div id="export-files" class="inner-top-xs col-md-12"></div>
+						<div id="editable"></div>
+					</div>
+					<!--移除题库-->
+					<div class="col-md-12">
+						<h3 class="sidelines text-center">
+							<span>移除题库</span>
+						</h3>
+						<div class="inner-bottom-xs">
+							<div style="font-size: 12px;">
+								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+								<span style="margin:0px">注意：题库依托于课程，移除题库操作将会删除所选课程的所有题型、所有试题，请谨慎操作！</span>
+							</div>
+							<div style="font-size: 12px;">
+								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+								<span style="margin:0px">已保存的草稿、未打印的试卷依赖于当前题库，移除题库会使得这些内容全部失效！</span>
+							</div>
+						</div>
+							<div class="hotizon-label">
+								<label>题库：</label>
+								<select name="courseID" id="drop-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;">
+									<option value="">请选择要移除的题库</option>
+									{% for course in courses %}
+									<option value="{{ course.courseID }}">{{ course.course }}</option>
+									{% endfor %}
+								</select>
+							<buitton id="drop-bank-btn" class="btn btn-red btn-small" href="javascript:void(0);" style=" display:none;">移除整个题库</button>
+							</div>
+					</div>
+				</div>
+				<!--右侧-->
+				<div class="col-md-6">
+					<div class="col-md-12 text-left" style="background-color: #f5f5f5;">
+						<p style="font-size: 16px; padding: 5px 5px;">查看&搜索题库</p>
+					</div>
+					<div class="col-md-12" style="margin-top: 10px;">
+						<form action="query" method="POST" id="query" class="form-inline">
+							{% csrf_token %}
+							<div class="form-group">
+								<label>课程</label>
+								<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;">
+									{% for course in courses %}
+									<option value="{{ course.courseID }}">{{ course.course }}</option>
+									{% endfor %}
+								</select>
+							</div>
+							<div class="form-group" >
+								<label>题型</label>
+								<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;">
+									<option value="s-choice">单选题</option>
+									<option value="m-choice">多选题</option>
+									<option value="judge">判断题</option>
+									<option value="s-answer">简答/计算题</option>
+									<option value="blank">填空题</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>关键词</label>
+								<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词">
+							</div>
+							<button type="submit" id="query-submit" class="btn" style="margin-bottom: 0px;"><span class="fa fa-search fa-lg"></span></button>
+						</form>
+					</div>
+					<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
+						<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;">
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!--模态窗-->
+<div class="modal fade" id="modal-utli" tabindex="-1" role="dialog" aria-labelledby="modal-utli" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-utli">
+					通用模态消息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="text-center">
+					<h2 id="item-title"></h2>
+					<p id="item-content" style="font-family:Microsoft Yahei;"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="confirm-btn btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/jquery.form.js' %}"></script>
+
+<script>
+
+//题型标识转换
+jQuery.translate = function(e_type){
+	switch(e_type){
+		case("s-choice"): e_type_name = '单选题'; break;
+		case("m-choice"): e_type_name = '多选题'; break;
+		case("judge"): e_type_name = '判断题'; break;
+		case("blank"): e_type_name = '填空题'; break;
+		case("s-answer"): e_type_name = '简答题'; break;
+	}
+};
+</script>
+
+<script>
+var vm = new Vue({
+  el: '#import-one',
+  data: {
+    courseID: '',
+    e_type:''
+    one_form_edit : '',
+  },
+  watch:{
+  	e_type: function(e_type){
+  		console.log(e_type)
+  		var url = 'add/'+e_type+"/";
+  		axios.get(url)
+		  .then(function (response) {
+		    console.log(response);
+		    vm.one_form_edit = response;
+		  })
+		  .catch(function (error) {
+		    console.log(error);
+		  });
+  	}
+  }
+})
+</script>
+
+<!--获取单条试题填写表单
+<script>
+	$("#inpute_type_one").change(function(){
+		var e_type = $(this).val();
+		var url = 'add/'+e_type+"/";
+			csrftoken = $.cookie("csrftoken");
+		$("#one-form-sec").load(url)
+	})
+</script>
+-->
+
+<!--单条、批量上传切换-->
+<script>
+	$("#import-bulk-btn").click(function(){
+		$("#import-bulk").show('slow');
+		$("#import-one").hide('slow');
+	})
+	$("#import-one-btn").click(function(){
+		$("#import-bulk").hide('slow');
+		$("#import-one").show('slow');
+	})
+</script>
+
+<!-- 试题批量上传 -->
+<script>
+function upload(event) {
+event.preventDefault();
+var data = new FormData($('#bulk-form').get(0));
+
+$("#btn-import-bulk").before("<div id=\"bulk-processing\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在处理上传的题库...</span></div>");
+
+$.ajax({
+    url: $(this).attr('action'),
+    type: $(this).attr('method'),
+    data: data,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(result) {
+    	console.log(result);
+    	$("#bulk-processing").remove();
+    	if (result['result'] == 'Do not match'){
+    		alert("提交题型与所选题型不一致！")
+    	}else if(result['result'] == 'Do not support'){
+    		alert("不支持该格式，请检查上传文件！")
+    	}else if(result['result'] == 'not valid form'){
+    		alert("请选择上传的题库文件！")
+    	}else{
+    		var courseID = $("#bulk-courseID").val()
+    			e_type = $("#inpute_type").val();
+			$("#id_courseID_id").val(courseID);
+			$("#id_e_type").val(e_type);
+    		$("#query-submit").trigger("click");
+    	}
+    }
+});
+return false;
+}
+
+$(function() {
+    $('#bulk-form').submit(upload);
+});
+</script>
+
+<!--查询题库-->
+<script>
+$("#query-submit").click(function(){
+	$("#candidate").append("<div class=\"text-center\"><span class=\"fa fa-spinner fa-spin\"></span></div>")
+	event.preventDefault();
+	var courseID = $("#id_courseID_id").val();
+	var e_type = $("#id_e_type").val();
+	var keyword = $("#id_keyword").val();
+	var data = {
+		'courseID': courseID,
+		'e_type': e_type,
+		'keyword': keyword,
+	};
+	var csrftoken = $.cookie("csrftoken");
+	var url = "{% url 'bank_query_editable' %}";
+	$("#candidate").load(url, {'csrfmiddlewaretoken': csrftoken,'courseID': courseID, 'e_type': e_type, 'keyword': keyword});
+
+return false;
+})
+</script>
+
+<!--修改试题-->
+<script>
+$(document).on("click", ".e-view", function(){
+		e_type_edit = $(this).prev().data("type");
+		e_id_edit = $(this).prev().val();
+		csrftoken = $.cookie("csrftoken");
+	var url = "edit/"+e_type_edit+"/"+e_id_edit+"/";
+	$("#editable").empty();
+	$("#editable").load(url);
+})
+</script>
+
+<!--删除试题-->
+<script>
+$("#del-bulk").click(function(){
+	var e_list = new Array();
+	var e_type = '';
+	$("#candidates-list input:checkbox:checked").each(function(){
+		e_type = $(this).data("type");
+		e_list.push($(this).val());
+	});
+	var data = {
+		'e_type': e_type,
+		'e_list': e_list,
+	}
+	json = JSON.stringify(data);
+	console.log(json)
+	if (e_list.length > 0){
+		$.ajax({
+			url: "{% url 'bank_delete' %}",
+			type: "POST",
+			headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			data: json,
+			success: function(result){
+				console.log(result);
+				$("#query-submit").trigger("click");
+			}
+		})
+	}
+})
+</script>
+
+<!--删除题库-->
+<script>
+	$("#drop-courseID").change(function(){
+		var courseID = $(this).val();
+		var course = $(this).find("option:selected").text();
+		$("#drop-bank-btn").show();
+		console.log(courseID);
+		data = {
+			'courseID': courseID
+		}
+		$("#drop-bank-btn").click(function(){
+			$("#item-title").text("警告")
+			$("#item-content").text("确认移除题库："+course+"    ？")
+			$(".confirm-btn").css("background-color", "#d9534f")
+			$("#modal-utli").modal('show');
+			$(".confirm-btn").click(function(){
+				$.ajax({
+				url: "{% url 'bank_drop' %}",
+				type: "POST",
+				headers: { "X-CSRFToken": $.cookie("csrftoken") },
+				data: data,
+				success: function(result){
+					console.log(result);
+					$("#query-submit").trigger("click");
+					},
+				});
+			})
+		});
+	})
+</script>
+
+<!--导出题库-->
+<script>
+	$("#export-bank-btn").click(function(){
+		var courseID = $("#export-courseID").val();
+		var data = {
+			'courseID': courseID,
+		}
+		$(this).after("<div id=\"generating\" class=\"text-center\"><span class=\"fa fa-spinner fa-spin\"></span>&nbsp;&nbsp;请稍等，正在生成题库文件...</div>")
+		$.ajax({
+		url: "{% url 'bank_export' %}",
+		type: "POST",
+		headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		data: data,
+		success: function(result){
+			console.log(result);
+			$("#generating").remove();
+			$("#export-files").empty();
+			$.each(result, function(e_type, item){
+				if (item == true){
+					jQuery.translate(e_type);
+					$("#export-files").append("<div class=\"col-md-2 text-center\"><a href=\"/media/user_"+{{ request.user.user_id }}+"/"+e_type+".xls\"><span class=\"fa fa-file-excel-o fa-2x green\">&nbsp;</span></a><div>"+e_type_name+"</div></div>")
+				}
+			})
+			},
+		});
+	})
+</script>
+{% endblock javascript %}

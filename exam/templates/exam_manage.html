@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}管理试卷{% endblock title %}
+{% block content %}
+<style type="text/css">
+	p{
+		font-size: 16px;
+	}
+</style>
+<div class="row">
+	<div class="col-md-12 border-left">
+		<section class="text-right">
+			<h1>管理试卷</h1>
+			<p style="font-size:14px;">在这里您可以管理您创建的试卷，包括编辑、删除、生成word文档(.docx格式)或PDF文档试卷以进行打印</p>
+			<br />
+		</section>
+		<section class="border-top-md">
+			<div class="row inner-xs">
+				<!--左侧-->
+				<div class="col-md-6 text-center border-right">
+					<h3 class="sidelines text-center">
+						<span>查看试卷</span>
+					</h3>
+					<h4>所属课程：{{ exams.0.courseID.course }}</h4>
+					<p style="margin-bottom: 0px;"><span class="fa fa-long-arrow-down"></span>&nbsp;&nbsp;以下是您已创建的试卷&nbsp;&nbsp;<span class="fa fa-long-arrow-down"></span></p>
+					<p style="font-size: 12px;"><span class="fa fa-exclamation"></span>&nbsp;&nbsp;请注意：已有试卷内的小题分数跟随最后一次的配分情况&nbsp;&nbsp;</p>
+					<div class="tab-pane fade in active">
+						<p class="fa fa-spinner fa-spin"></p>
+						{% for exam in exams %}
+						<div id="{{ exam.id }}" class="panel-group">
+						  	<div class="panel panel-default">
+						  		<div class="panel-heading">
+						  			<h4 class="panel-title">
+						  				<a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#{{ exam.id }}" href="#content{{ exam.id }}" aria-expanded="false">
+						  					<p>试卷标题：{{ exam.title }}</p>
+						  					<span class="fa"></span>
+						  				</a>
+						  			</h4>
+						  		</div>
+						  		<div id="content{{ exam.id }}" class="panel-collapse collapse" aria-expanded="false">
+						  			<div class="panel-body">		
+									  	<h4>试卷标题：{{ exam.title }}</h4>
+									  	<p>所属课程：{{ exam.courseID.course }}</p>
+									  	<p>备注：{{ exam.intro }}</p>
+						  				<p>创建日期：{{ exam.created_at|date:"Y-m-d h:m A" }}</p>
+							  			{% if exam.status %}
+						  				<p>状态：编辑中</p>
+							  			{% else %}
+						  				<p>状态：废案</p>
+							  			{% endif %}
+							  			<button value="{{ exam.id }}" data-title="{{ exam.title }}" class="exam-add btn btn-blue btn-small">选择此试卷</button>
+							  			<button value="{{ exam.id }}" class="exam-del btn btn-red btn-small">删除此试卷</button>
+						  			</div>
+						  		</div>
+						  	</div>
+					  	</div>
+					  	{% endfor %}
+					</div>
+
+				</div>
+				<!--右侧-->
+				<div class="col-md-6">
+					<div class="col-md-12">
+						<h3 class="sidelines text-center">
+							<span>生成纸质试卷</span>
+						</h3>
+						<div id="exam-info" class="text-center border-bottom" style="padding-bottom: 20px; padding-top: 20px;"></div>
+						<div class="text-center inner-top-xs">
+							<p>请先从左侧栏选择试卷，然后选择要生成的试卷格式</p>
+							<button value="pdf" class="format-btn btn btn-blue" style="margin-right: 10px;"><span class="fa fa-file-pdf-o fa-2x"></span>&nbsp;&nbsp;PDF</button>
+							<button value="docx" class="format-btn btn btn-blue"><span class="fa fa-file-word-o fa-2x"></span>&nbsp;&nbsp;DOCX</button>
+						</div>
+						<div>
+							<button id="exam-generate" class="btn btn-navy btn-block">生成试卷</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!--模态窗-->
+<div class="modal fade" id="modal-utli" tabindex="-1" role="dialog" aria-labelledby="modal-utli" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-utli">
+					通用模态消息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="text-center">
+					<h2 id="item-title"></h2>
+					<p id="item-content" style="font-family:Microsoft Yahei;"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="confirm-btn btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+<!--互斥按钮-->
+<script>
+	$(".format-btn").click(function(e){
+	$(this).addClass('active').siblings().removeClass('active');
+	});
+</script>
+
+<!--添加试卷并生成文档-->
+<script>
+	$(".exam-add").click(function(){
+		var title = $(this).data("title"),
+			exam_id = $(this).val();
+		$("#exam-info").empty();
+		$("#exam-info").append("<p>您选择的试卷：</p><h1>"+title+"</h1>");
+		$("#exam-generate").click(function(){
+			$("#exam-info").empty();
+	    	$("#exam-info").append("<div id=\"writing\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在为您生成文档，请稍等...</span></div>")
+			var format = $(this).parent().prev().find(".btn.active").val();
+			data = {
+				'exam_id': exam_id,
+				'format': format
+			};
+			$.ajax({
+			    url: "",
+			    type: "POST",
+			    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			    data: data,
+			    success:function(result){
+			    	console.log(result)
+			    	$("#exam-info").empty();
+			    	$("#exam-info").append("已为您生成：<br /><br /><a href=/"+result['path']+" style=\"font-weight: bold;\"><span class=\"fa fa-file-text-o fa-2x\">&nbsp;&nbsp;</span>"+result['title']+"</a>");
+			    }
+			});
+		})
+	})
+</script>
+
+<!--预览试卷-->
+<script>
+	$(".exam-profile").click(function(){
+		exam_id = $(this).val();
+		data = {
+			'exam_id': exam_id,
+			'format': 'profile',
+		}
+		$.ajax({
+		    url: "",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    data: data,
+		    success:function(result){
+		    	console.log(result);
+		    },
+	    });
+	})
+</script>
+
+<!--删除试卷-->
+<script>
+	$(".exam-del").click(function(){
+		exam_id = $(this).val();
+		data = {
+			'exam_id': exam_id,
+		}
+		$.ajax({
+		    url: "delete/"+exam_id+"/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    data: data,
+		    success:function(result){
+		    	console.log(result);
+		    	location.reload('true');
+		    },
+	    });
+	})
+</script>
+
+<script>
+	$(document).ready(function(){
+		$(".fa-spinner").remove();
+	})
+</script>
+{% endblock javascript %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}开课管理{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<style>
+	p{
+		font-size: 16px;
+	}
+</style>
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">开设课程&信息管理</h1>
+		</section>
+		<section id="content" class="border-top-lg">
+			<div class="row"> 
+			<div class="col-sm-12 inner-right-xs">
+			<a href="/dispatch/create" class="btn btn-lg"><i class="fa fa-users"></i>&nbsp;&nbsp;创&nbsp;建&nbsp;新&nbsp;课&nbsp;程</a>
+			</div>
+			{% for course in courses %}
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<h3 class="sidelines text-center">
+						<span><a href="/dispatch/{{ course.courseID }}/" style="font-size:20px;">{{ course.course }}</a>
+						</span>
+					</h3>
+					<p>授课教师：{{ course.teacher.name }}</p>
+					<p>课程简介：{{ course.intro }}</p>
+					<p>已有作业：</p>
+					<div id="{{ course.courseID }}" class="col-md-12 inner-bottom-xs questions-already"></div>
+					<a href="/dispatch/{{ course.courseID }}/publish" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;&nbsp;发&nbsp;布&nbsp;新&nbsp;作&nbsp;业</a>
+					<span class="col-sm-offset-5">
+					<a href="/dispatch/{{ course.courseID }}" class="btn btn-blue"><i class="fa fa-cog fa-lg"></i>&nbsp;查&nbsp;看&nbsp;课&nbsp;程</a>
+					<button class="course-delete btn btn-red" value="{{ course.courseID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;课&nbsp;程</button>
+				</div>
+			{% endfor %}
+			</div>
+		</section>
+	</div>
+</div>
+
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="modal-delete" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete">
+					确认删除
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>确认删除该课程？</h2>
+					<p>该课程，连同课程下的作业及已提交答案将被全部删除，确认删除吗？</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="delete-confirm" class="btn btn-red" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete-success" tabindex="-1" role="dialog" aria-labelledby="modal-delete" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete">
+					删除成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>已删除选择的课程</h2>
+					<p>您选择的课程（连同作业及对应答案）已被删除，关闭消息栏后自动刷新</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+<!--查询课程作业信息-->
+<script>
+$(function(){
+	$(".questions-already").each(function(){
+		var courseID = $(this).attr("id");
+		var data = {
+			'courseID':courseID,
+		}
+		$.ajax({
+			url:"{% url 'course_teacher_query_questions' %}",
+			type:"POST",
+    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
+    		data:data,
+    		success:function(questions_json){
+    			if (questions_json.length == 0){
+    			$("#"+courseID).append("<p style=\"font-family:Microsoft YaHei;\">未发布任何作业</p>")
+    		}else{
+    			$.each(questions_json, function(i, item){
+    				$("#"+item.fields.courseID).append(
+    					"<div class=\"col-md-6\" style=\"margin-top: 10px;\"><span class=\"fa fa-arrow-circle-right\"></span><span style=\"font-family:Microsoft YaHei; margin-left: 10px;\"><a href=\"/dispatch/"+item.fields.courseID+"/"+item.pk+"/review\">"+item.fields.subject+"</a></span></div>"
+    					);
+    				$(".fa-spin."+item.fields.courseID).remove();
+    			})
+    		}
+    		}
+
+		});
+	});
+});
+</script>
+
+
+{# 课程删除确认窗及信息窗 #}
+<script>
+$(".course-delete").click(function(){
+event.preventDefault();
+courseID = $(this).val()
+var data = {
+        'pk': courseID,
+    };
+$('#modal-delete').modal('show');
+
+$('#delete-confirm').click(function(){
+	$.ajax({
+	    url: courseID+"/",
+	    type: "POST",
+	    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+	    data: data,
+	    success: function(result){   
+			$('#modal-delete-success').modal('show');
+			$('.close-btn').click(function(){
+				location.reload(true); 
+			});
+	    }
+	})
+});
+
+$('.close-btn').click(function(){
+	$('#modal-delete').modal('hide');
+})
+
+});
+</script>
+
+{% endblock javascript %}
+

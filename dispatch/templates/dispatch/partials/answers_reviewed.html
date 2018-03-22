@@ -1,0 +1,45 @@
+
+<div class="tab-pane fade in active">
+	<p class="fa fa-spinner fa-spin"></p>
+	{% for answer in answers %}
+	<div id="{{ answer.id }}" class="panel-group">
+	  	<div class="panel panel-default">
+	  		<div class="panel-heading">
+	  			<h4 class="panel-title">
+	  				<a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#{{ answer.id }}" href="#content{{ answer.id }}" aria-expanded="false" style="background:#CCFFCC">
+	  					<p>提交：{{ answer.user_id.user_id }}&nbsp;&nbsp;&nbsp;&nbsp;{{ answer.user_id.name }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;标题：{{ answer.subject }}</p>
+	  					<span class="fa"></span>
+	  				</a>
+	  			</h4>
+	  		</div>
+	  		<div id="content{{ answer.id }}" class="panel-collapse collapse" aria-expanded="false">
+	  			<div class="panel-body">		
+				  	<h4>答案标题：{{ answer.subject }}</h4>
+				  	<p style="font-size:16px;">正文：{{ answer.content }}</p>
+  				{% if answer.file %}
+  					<a href="/media/{{ answer.file }}" style="display:block; font-size:16px;">附件：{{ answer.file }}</a>
+  					<br/>
+  				{% else %}
+  					<p style="font-size:16px;">附件：无</p>
+  				{% endif %}
+	  				<p style="font-size:16px;">提交日期：{{ answer.created_at|date:"Y-m-d h:m A" }}</p>
+	  			<p class="grade" style="font-size:16px;">评分：
+				  	{{ answer.get_grade_display }}
+			  	</p>
+	  			{% if answer.suggestions %}
+	  				<p style="font-size:16px;">批改建议：{{ answer.suggestions }}</p>
+	  			{% else %}
+	  				<p style="font-size:16px;">批改建议：无</p>
+	  			{% endif %}
+	  			</div>
+	  		</div>
+	  	</div>
+  	</div>
+  	{% endfor %}
+</div>
+
+<script>
+	$(document).ready(function(){
+		$(".fa-spin").remove();
+	})
+</script>

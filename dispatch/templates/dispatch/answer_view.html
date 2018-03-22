@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}我的成绩{% endblock title %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">我的成绩</h1>
+		</section>
+
+		<section class="border-top-lg">
+			<div class="row">
+				<div class="col-sm-12 inner-right-xs inner-bottom-xs">
+					<div class="text-center inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>查询作业最好成绩</span>
+					</h2>
+					</div>
+					<div class="form-group text-center">
+						<select name="course" id="course-select">
+							<option value="">选择课程</option>
+							{% for course in courses %}
+							<option class="courseID-option" value="{{ course.courseID }}">{{ course.course }}</option>
+							{% endfor %}
+						</select>
+						<select name="question" id="question-select">
+							<option value="">选择作业</option>
+						</select>
+						<button id="query-btn" class="btn" style="margin-top:0px;"><i class="fa fa-search"></i></button>
+						<div class="inner-top-xs">
+						<p id="best-grade-title" style="display:none;">最好成绩：</p>
+						<h1 id="best-grade"></h1>
+						<p id="best-grade-info"></p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="inner-top-xs">
+			<h3 class="sidelines text-center">
+			<span>查看历史答案评分情况</span>
+			</h3>
+					<div class="row">
+						<div class="col-md-12 inner-top-xs inner-bottom-xs" style="font-size:16px;">
+							<ul class="nav nav-tabs tab-menu">
+								{% for course in courses %}
+								<li class="course dropdown" data-id="">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ course.course }}&nbsp;&nbsp;<span class="fa fa-caret-down"></span></a>
+									<ul class="course dropdown-menu" id="{{ course.courseID }}">
+										<li>
+											<a href="" tabindex="-1" data-toggle="tab"></a>
+										</li>
+									</ul>
+								</li>
+								{% endfor %}
+							</ul>
+							<div class="order-select pull-right">
+								<span class="order green">
+									<a href="javascript:void(0);" value="time">最新提交&nbsp;</a><span class="fa fa-long-arrow-down"></span>
+								</span>
+							</div>
+							<div id="tab-content" class="inner-top-xs tab-content">
+							</div>
+						</div>
+					</div>
+		</section>
+	</div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+	<!--加载课程下拉列表-->
+	<script>
+	$(".course.dropdown-menu").each(function(){
+		var courseID = $(this).attr("id");
+		data = {
+			'courseID': courseID,
+		};
+		$.ajax({
+			url:"questions/",
+			type:"POST",
+			headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			data: data,
+			success:function(result){
+				$.each(result, function(i, item){
+					$("#"+item.fields.courseID).append("<li data-id=\""+item.pk+"\"><a href=\"#"+item.pk+"\" tabindex=\"-1\" data-toggle=\"tab\">"+item.fields.subject+"</a></li>");
+				});
+			},
+		});
+	})
+	</script>
+
+	<!--选择作业触发-->
+	<script>
+	$(function(){
+	$(".course.dropdown-menu").on("click", "li", function(){
+		var questionID = $(this).attr("data-id");//获取data-id的值
+		window.location.hash = questionID;  //设置锚点
+		$("#tab-content").load(questionID+"/");
+	});
+	});
+	</script>
+
+	<!--查询成绩-->
+	<script>
+	$("#course-select").change(function(){
+		var courseID = $(this).val();
+		console.log(courseID);
+		data = {'courseID': courseID};
+		$.ajax({
+			url:"",
+			type:"POST",
+			headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			data: data,
+			success:function(result){
+				console.log(result);
+				$("#question-select").empty();
+				$.each(result, function(i, item){
+					$("#question-select").append("<option value="+item.pk+">"+item.fields.subject+"</option>");
+					//查询成绩按钮触发及显示//
+					$("#query-btn").click(function(){
+						var courseID = $("#course-select").val();
+						var questionID = $("#question-select").val();
+						data = {
+							'courseID':courseID,
+							'questionID':questionID,
+						},
+						$.ajax({
+							url:"/dispatch/answer/grade/",
+							type:"POST",
+							headers: { "X-CSRFToken": $.cookie("csrftoken") },
+							data: data,
+							success:function(result){
+								$("#best-grade").empty();
+								if (result.id){
+									$("#best-grade-title").show();
+									$("#best-grade").text(result.grade);
+									$("#best-grade-info").text('标题:'+result.subject);
+								}else{
+									$("#best-grade-title").hide();
+									$("#best-grade-info").text(result.errors);
+								}
+								
+							}
+						});
+					});
+						
+				});
+				
+			}
+		})
+	})
+	</script>
+
+{% endblock javascript %}
+

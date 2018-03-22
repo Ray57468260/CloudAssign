@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}创建新课程{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1>创建新课程&编辑课程信息</h1>
+		</section>
+		<section id="course-info" class="border-top-lg">
+			<div class="row"> 
+				<div class="col-sm-12 inner-top-sm inner-right-xs">
+				<form action="" method="POST" style="display:bolck;">
+				{% csrf_token %}
+				{{ form.courseID.as_hidden }}
+				<div class="col-sm-6">
+					<div class="input-group margin-bottom-sm">
+					<span class="input-group-addon"><span class="fa fa-address-card-o fa-fw"></span>
+					</span>
+					<input class="form-control" type="text" name="course" required id="id_course" placeholder="课程名">
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<br/>
+				</div>
+				<div class="col-sm-12">
+					<textarea id="id_intro" class="form-control" name="intro" cols="40" rows="10" required placeholder="课程简介"></textarea>
+					{{ form.teacher.as_hidden }}
+					<input class="btn" type="submit" value="提交">
+				</div>
+				</form>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-check" tabindex="-1" role="dialog" aria-labelledby="modal-check" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-check">
+					确认新课程信息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="course-preview inner-xs text-center">
+					<h2>将为您创建如下课程：</h2>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="confirm btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-success" tabindex="-1" role="dialog" aria-labelledby="modal-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-success">
+					创建成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>创建新课程完成！</h2>
+					<p>3秒后自动跳转到课程管理页面</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="final-close-btn" type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'js/jquery.form.js' %}"></script>
+
+
+	<script>
+	function autofill(){
+		$('#id_teacher').val({{ request.user.user_id }});
+		var date = new Date();
+		var year = date.getFullYear();
+		var ran = Math.floor(Math.random()*(9999-1000)+1000);
+		$('#id_courseID').val(year+''+ran);
+	}
+	autofill()
+	</script>
+
+	<script>
+	$("form").submit(function(){
+		event.preventDefault();
+		$("#modal-check").modal('show');
+		name = $("#id_course").val();
+		intro = $("#id_intro").val();
+		$(function(){
+			$(".course-preview").empty();
+			$(".course-preview").append("<p>课程名："+name+"</p>"+"<p>课程简介："+intro+"</p>")
+		});
+		$(".confirm").click(function(){
+			$("form").ajaxSubmit(function(){
+				$("#modal-success").modal('show');
+				setTimeout(function(){
+					window.location.href="/dispatch/course/teacher/";
+				}, 3000);
+
+			});
+		});
+	})
+	</script>
+
+{% endblock javascript %}
+

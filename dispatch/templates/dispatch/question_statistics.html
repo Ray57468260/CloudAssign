@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% block title %}作业统计{% endblock title %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<!-- Styles -->
+<style>
+#barchar {
+	width		: 100%;
+	height		: 300px;
+	font-size	: 14px;
+	font-family: "Microsoft Yahei";
+}#linechart {
+	width	: 100%;
+	height	: 500px;
+}	
+</style>
+
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+	<section class="row inner-bottom-xs">
+		<nav class="col-md-6 inner-top-xs">
+			<h3>
+			<a href="{{ request.get_full_path | replace_url:'statistics,review' }}"><span class="fa fa-chevron-left"></span>&#12288;作业评分</a></h3>
+		</nav>
+		<div class="col-md-6">
+			<h1 align="right">作业统计</h1>
+		</div>
+	</section>
+	<section class="border-top-lg">
+		<div class="row">
+			<div class="col-sm-12 inner-right-xs inner-bottom-xs">
+				<div class="inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>题目：{{ question.subject }}</span>
+					</h2>
+				</div>
+				<p style="font-size:16px;">问题描述：{{ question.content }}</p>
+				<p style="font-size:16px;">截止日期：{{ question.ddl }}	</p>
+				{% if question.status %}
+				<p style="color:#1ABB9C; font-size:16px;">状态：开放中</p>
+				{% else %}
+				<p style="color:#d9534f; font-size:16px;">状态：已关闭</p>
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<section class="inner-top-xs">
+		<div class="row">
+			<div class="col-md-12 text-center">
+				<h3 class="sidelines text-center">
+					<span>点名表</span>
+				</h3>
+				<div class="col-md-6 border-right" style="color: #1ABB9C;">
+					<h4 style="color: #1ABB9C;">已交人数：{{ uploaded_students.count }}</h4>
+					{% for student in uploaded_students %}
+						<div class="col-md-6">
+							{{ student.user_id }}-{{ student.name }}
+						</div>
+					{% endfor %}
+				</div>
+				<div class="col-md-6 border-right" style="color: #fa6c65">
+					<h4 style="color: #fa6c65">未交人数：{{ undone_students.count }}</h4>
+					{% for student in undone_students %}
+						<div class="col-md-6">
+							{{ student.user_id }}-{{ student.name }}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="inner-top-xs">
+		<div class="row">
+			<h3 class="sidelines text-center">
+				<span>提交情况统计</span>
+			</h3>
+			<p align="middle" style="font-size:14px;">*学生允许自行删除被驳回的答案</p>
+			<div class="col-md-12">
+				<div class="col-md-3">
+				<p>提交总数：{{ uploaded.count }}</p>
+				</div>
+				<div class="col-md-3">
+				<p>已批改答案：{{ reviewed.count }}</p>
+				</div>
+				<div class="col-md-3">
+				<p>未批改答案：{{ remained.count }}</p>
+				</div>
+				<div class="col-md-3">
+				<p>驳回答案：{{ rejected.count }}</p>
+				</div>
+				<div class="col-md-4 inner-top-md text-center">
+					<p>该作业的最好成绩：</p>
+					<h1>{{ reviewed.0.get_grade_display }}</h1>
+				</div>
+				<div class="col-md-8 inner-top-xs">
+				<div id="barchar"></div>
+				</div>
+				<!--
+				<div class="col-md-12 inner-top-xs">
+					<div id="linechart"></div>
+				</div>
+			-->
+			</div>
+		</div>
+	</section>
+	</div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+<!-- Resources -->
+<script src="{% static 'amcharts/amcharts.js' %}"></script>
+<script src="{% static 'amcharts/serial.js' %}"></script>
+<script src="{% static 'amcharts/plugins/export/export.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'amcharts/plugins/export/export.css' %}" type="text/css" media="all" />
+<script src="{% static 'amcharts/themes/light.js' %}"></script>
+
+<!-- 成绩分布柱图 -->
+<script>
+var chart = AmCharts.makeChart("barchar", {
+	"type": "serial",
+    "theme": "light",
+	"categoryField": "grade",
+	"rotate": true,
+	"startDuration": 1,
+	"categoryAxis": {
+		"gridPosition": "start",
+		"position": "left"
+	},
+	"trendLines": [],
+	"graphs": [
+		{
+			"balloonText": "count:[[value]]",
+			"fillAlphas": 1,
+			"id": "AmGraph-1",
+			"lineAlpha": 0.2,
+			"title": "count",
+			"type": "column",
+			"valueField": "count"
+		},
+	],
+	"guides": [],
+	"allLabels": [],
+	"balloon": {},
+	"titles": [],
+	"dataProvider": [
+		{
+			"grade": 'A++',
+			"count": 
+				{{ grade_sta | count_grade:"95" }},
+		},
+		{
+			"grade": 'A+',
+			"count": 
+				{{ grade_sta | count_grade:"85" }},
+		},
+		{
+			"grade": 'A',
+			"count": 
+				{{ grade_sta | count_grade:"75" }},
+		},
+		{
+			"grade": 'B',
+			"count": 
+				{{ grade_sta | count_grade:"65" }},
+		},
+		{
+			"grade": 'C',
+			"count": 
+				{{ grade_sta | count_grade:"55" }},
+		},
+	],
+    "export": {
+    	"enabled": false
+     }
+
+});
+</script>
+
+<!-- 答案提交折线图 -->
+<script>
+var chart = AmCharts.makeChart("linechart", {
+    "type": "serial",
+    "theme": "light",
+    "marginRight": 40,
+    "marginLeft": 40,
+    "autoMarginOffset": 20,
+    "mouseWheelZoomEnabled":true,
+    "dataDateFormat": "YYYY-MM-DD",
+    "valueAxes": [{
+        "id": "v1",
+        "axisAlpha": 0,
+        "position": "left",
+        "ignoreAxisWidth":true
+    }],
+    "balloon": {
+        "borderThickness": 1,
+        "shadowAlpha": 0
+    },
+    "graphs": [{
+        "id": "g1",
+        "balloon":{
+          "drop":true,
+          "adjustBorderColor":false,
+          "color":"#ffffff"
+        },
+        "bullet": "round",
+        "bulletBorderAlpha": 1,
+        "bulletColor": "#FFFFFF",
+        "bulletSize": 5,
+        "hideBulletsCount": 50,
+        "lineThickness": 2,
+        "title": "red line",
+        "useLineColorForBulletBorder": true,
+        "valueField": "value",
+        "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
+    }],
+    "chartScrollbar": {
+        "graph": "g1",
+        "oppositeAxis":false,
+        "offset":30,
+        "scrollbarHeight": 80,
+        "backgroundAlpha": 0,
+        "selectedBackgroundAlpha": 0.1,
+        "selectedBackgroundColor": "#888888",
+        "graphFillAlpha": 0,
+        "graphLineAlpha": 0.5,
+        "selectedGraphFillAlpha": 0,
+        "selectedGraphLineAlpha": 1,
+        "autoGridCount":true,
+        "color":"#AAAAAA"
+    },
+    "chartCursor": {
+        "pan": true,
+        "valueLineEnabled": true,
+        "valueLineBalloonEnabled": true,
+        "cursorAlpha":1,
+        "cursorColor":"#258cbb",
+        "limitToGraph":"g1",
+        "valueLineAlpha":0.2,
+        "valueZoomable":true
+    },
+    "valueScrollbar":{
+      "oppositeAxis":false,
+      "offset":50,
+      "scrollbarHeight":10
+    },
+    "categoryField": "date",
+    "categoryAxis": {
+        "parseDates": true,
+        "dashLength": 1,
+        "minorGridEnabled": true
+    },
+    "export": {
+        "enabled": true
+    },
+    "dataProvider": [
+    {
+        "date": "2012-07-27",
+        "value": 13
+    }, {
+        "date": "2012-07-28",
+        "value": 11
+    }, {
+        "date": "2012-07-29",
+        "value": 15
+    }, {
+        "date": "2012-07-30",
+        "value": 16
+    }, {
+        "date": "2012-07-31",
+        "value": 18
+    }, {
+        "date": "2012-08-01",
+        "value": 13
+    }, {
+        "date": "2012-08-02",
+        "value": 22
+    }, {
+        "date": "2012-08-03",
+        "value": 23
+    }, {
+        "date": "2012-08-04",
+        "value": 20
+    }, {
+        "date": "2012-08-05",
+        "value": 17
+    }, {
+        "date": "2012-08-06",
+        "value": 16
+    }, {
+        "date": "2012-08-07",
+        "value": 18
+    }, {
+        "date": "2012-08-08",
+        "value": 21
+    }, {
+        "date": "2012-08-09",
+        "value": 26
+    }, {
+        "date": "2012-08-10",
+        "value": 24
+    }, {
+        "date": "2012-08-11",
+        "value": 29
+    }, ]
+});
+
+</script>
+{% endblock javascript %}
+

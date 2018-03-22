@@ -1,0 +1,101 @@
+{% load static %}
+<!-- ============================================================= HEADER ============================================================= -->
+<header>
+  <div class="navbar">
+    <div class="navbar-header">
+      <div class="container">
+        <!-- ============================================================= LOGO MOBILE ============================================================= -->
+
+        <a class="navbar-brand" href="/"><img src="{% static 'images/b-the-beginning.jpg' %}" class="logo"
+                                              alt=""></a>
+
+        <!-- ============================================================= LOGO MOBILE : END ============================================================= -->
+
+        <a class="btn responsive-menu pull-right" data-toggle="collapse"
+           data-target=".navbar-collapse"><i
+                class='fa fa-list'></i></a>
+
+      </div>
+      <!-- /.container -->
+    </div>
+    <!-- /.navbar-header -->
+    <div class="yamm">
+        <div class="affix-wrapper">
+            <div class="navbar-collapse collapse" style="padding-top: 15px; padding-bottom: 15px;">
+            <div class="container">
+
+              <!-- ============================================================= LOGO ============================================================= -->
+
+              <a class="navbar-brand" href="/"><img src="{% static 'images/b-the-beginning.jpg' %}" class="logo" alt="" style="height: 50px; weight: 80px;"></a>
+
+              <!-- ============================================================= LOGO : END ============================================================= -->
+
+
+              <!-- ============================================================= MAIN NAVIGATION ============================================================= -->
+
+              <ul class="nav navbar-nav">
+
+                  {% if request.user.is_authenticated %}
+                    <li class="dropdown hover pull-right">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">欢迎回来:{{ request.user.name }}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'tools' %}">定制工具</a></li>
+                            {% if user.is_teacher %}
+                            <li><a href="{% url 'course_teacher' %}">我的课程</a></li>
+                            {% else %}
+                            <li><a href="{% url 'course_subscription' %}">我的课程</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'answer_view' %}">我的成绩</a></li>
+                            <li><a href="{% url 'users_profile' %}">更改个人信息</a></li>
+                            <li><a href="{% url 'users_logout' %}">注销</a></li>
+                        </ul>
+                    </li>
+                  {% else %}
+                
+                  <li class="pull-right">
+                    <a class='btn btn-blue' href="{% url 'users_register' %}" style="margin: 9px 0px 0px 10px !important; padding: 8px 15px 8px !important;">
+                      <i class="fa fa-id-badge"></i>
+                    <span class="text">&nbsp;&nbsp;注册</span></a>
+                  </li>
+
+                  <li class="pull-right">
+                    <a class='btn btn-black' href="{% url 'users_login' %}" style="margin: 9px 0px 0px 10px !important; padding: 8px 15px 8px !important;">
+                      <i class="fa fa-sign-in"></i><span class="text">&nbsp;&nbsp;登录</span></a>
+                  </li>
+
+                  {% endif %}
+                {% if request.user.is_teacher %}
+                <li class="pull-right no-bg"><a href="{% url 'course_teacher' %}">我的课程(教师版)</a></li>
+                <li class="pull-right no-bg"><a href="{% url 'exam_build' %}">创建试卷</a></li>
+                <li class="pull-right no-bg"><a href="{% url 'bank_manage' %}">题库管理</a></li>
+                {% else %}
+                <li class="pull-right no-bg"><a href="{% url 'course_subscription' %}">我的课程</a></li>
+                <li class="pull-right no-bg"><a href="{% url 'answer_view' %}">我的成绩</a></li>
+                {% endif %}
+              </ul>
+              <!-- /.nav -->
+
+
+              <!-- ============================================================= MAIN NAVIGATION : END ============================================================= -->
+
+            </div>
+            <!-- /.container -->
+            </div>
+        </div>
+      <!-- /.navbar-collapse -->
+    </div>
+  </div>
+  <!-- /.navbar -->
+
+</header>
+
+<script>
+    $(".hover").hover(function(){
+        $(this).addClass("open");
+    },function(){
+        $(this).removeClass("open");
+    })
+</script>
+<!-- ============================================================= HEADER : END ============================================================= -->

@@ -1,0 +1,576 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}配置试卷{% endblock title %}
+{% block content %}
+<style type="text/css">
+	p{
+		font-size: 14px;
+		padding: 5px 5px;
+	}
+</style>
+
+<div class="row">
+	<div class="col-md-12 border-left">
+		<section class="text-right">
+			<h1>配置试卷</h1>
+			<p>试卷详情配置，您可以在当前页面创建试卷、选择题型、配置试题，进入下一步后设置试题分值</p>
+			<br />
+		</section>
+		<section class="border-top-md">
+			<div class="row inner-xs">
+				<!--左侧-->
+				<div class="col-md-6 text-center border-right">
+					<div id="first-step" class="col-md-12">
+						<h3 class="sidelines text-center">
+							<span>第一步：填写试卷信息</span>
+						</h3>
+						<form class="form-horizontal" style="font-size: 16px;">
+							<div class="form-group">
+								<label class="col-md-2 control-label">所属课程</label>
+								<div class="col-md-3 pull-left">
+									<select name="courseID" required id="id_courseID">
+										{% for course in courses %}
+										<option value="{{ course.courseID }}">{{ course.course }}</option>
+										{% endfor %}
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2 control-label">试卷题目</label>
+								<div class="col-md-10">
+									<input type="text" name="title" maxlength="64" required id="id_title" placeholder="试卷题目(必填)" class="form-control">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-2 control-label">备注</label>
+								<div class="col-md-10">
+									<textarea name="intro" maxlength="255" id="id_intro" cols="30" rows="2" placeholder="备注(选填)" class="form-control"></textarea>
+									</div>
+							</div>
+						</form>
+					</div>
+					<div id="draft-string"><p hidden='hidden'>{{ draft.draft_string }}</p></div>
+					<div id="second-step" class="col-md-12">
+						<h3 class="sidelines text-center">
+							<span>第二步：配置试题</span>
+						</h3>
+						<!--手动配置-->
+						<button id="config-m-btn" class="btn btn-small btn-navy">手动配置</button>
+						<button id="config-a-btn" class="btn btn-small btn-navy">随机自动配置</button>
+
+						<div id="config-m" style="font-size: 16px;">
+							<label>增加题型：</label>
+								<select id="e-type" name="e-type" style="margin-bottom: 0px; height:33px;">
+									<option value="s-choice">单选题</option>
+									<option value="m-choice">多选题</option>
+									<option value="judge">判断题</option>
+									<option value="s-answer">简答题</option>
+									<option value="blank">填空题</option>
+								</select>
+								<span id="add-btn" class="fa fa-lg fa-plus-circle green" style="margin-left: 10px; cursor:pointer;"></span>
+						</div>
+						<div id="config-a" style="font-size: 16px;" hidden="hidden;">
+							<form id="config-a-form" class="form-inline">
+								<div class="form-group" style="margin: 10px">
+									<label>单选题：</label>
+									<input type="text" data-type="s-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
+								</div>
+								<div class="form-group" style="margin: 10px">
+									<label>多选题：</label>
+									<input type="text" data-type="m-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px"placeholder="数量">
+								</div>
+								<div class="form-group" style="margin: 10px">
+									<label>判断题：</label>
+									<input type="text" data-type="judge" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
+								</div>
+								<div class="form-group" style="margin: 10px">
+									<label>填空题：</label>
+									<input type="text" data-type="blank" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
+								</div>
+								<div class="form-group" style="margin: 10px">
+									<label>简答题：</label>
+									<input type="text" data-type="s-answer" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
+								</div>
+							</form>
+							<button id="generate-a" class="btn btn-small btn-navy">生成随机试卷</button>
+							<p>注意：每次生成都会覆盖已有试题</p>
+						</div>
+						<div id="e-type-list" class="col-md-12 inner-top-xs" style="">
+						</div>
+						<div class="col-md-12">
+							<button id="apply-draft" class="btn btn-gray btn-small pull-right">应用最后一次草稿</button>
+							<button id="save-draft" class="btn btn-gray btn-small pull-right" style="margin-right: 5px;">保存草稿</button>
+						</div>
+						<div class="col-md-12 border-top">
+							<button id="next-step" class="btn btn-block">下一步</button>
+						</div>
+					</div>
+				</div>
+				<!--右侧-->
+				<div class="col-md-6">
+					<div class="col-md-12 text-left" style="background-color: #f5f5f5;">
+						<p>先从左侧栏中选择课程，然后从题库中筛选出试题加入试卷</p>
+					</div>
+					<div class="col-md-12" style="margin-top: 10px;">
+						<form action="/query" method="POST" id="query" class="form-inline">
+							{% csrf_token %}
+							<div class="form-group" style="margin-right: 10px;">
+								<label style="font-size: 16px;">题型：</label>
+								<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;">
+									<option value="s-choice">单选题</option>
+									<option value="m-choice">多选题</option>
+									<option value="judge">判断题</option>
+									<option value="s-answer">简答题</option>
+									<option value="blank">填空题</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label style="font-size: 16px;">关键词：</label>
+								<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 150px; margin-bottom: 1px;" placeholder="关键词">
+							</div>
+							<button type="submit" id="query-submit" class="btn" style="margin-bottom: 0px;"><span class="fa fa-search fa-lg"></span></button>
+						</form>
+					</div>
+					<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
+						<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;">
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!--模态窗-->
+<div class="modal fade" id="modal-utli" tabindex="-1" role="dialog" aria-labelledby="modal-utli" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-utli">
+					通用模态消息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="text-center">
+					<h2 id="item-title"></h2>
+					<p id="item-content" style="font-family:Microsoft Yahei;"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="confirm-btn btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-utli-min" tabindex="-1" role="dialog" aria-labelledby="modal-utli-min" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-utli-min">
+					通用模态消息(mini)
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="text-center">
+					<h4 id="item-title-min"></h4>
+					<p id="item-content-min" style="font-family:Microsoft Yahei;"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-point-distrib" tabindex="-1" role="dialog" aria-labelledby="modal-point-distrib" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-point-distrib">
+					配分模态窗
+				</h4>
+			</div>
+			<div class="modal-body row">
+				<div id="point-distrib" class="inner-left-xs text-left">
+				</div>
+			</div>
+			<div class="modal-footer">
+				<div class="com-md-10 text-center" style="font-weight: bold;">
+					<span>总分值：</span><span id="point-addup"></span>
+				</div>
+				<button type="button" class="upload-btn btn btn-default" data-dismiss="modal">提交
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/jquery.form.js' %}"></script>
+
+<!--手动、自动配置切换-->
+<script>
+	$("#config-m-btn").click(function(){
+		$("#config-m").show('slow');
+		$("#config-a").hide('slow');
+	})
+	$("#config-a-btn").click(function(){
+		$("#config-m").hide('slow');
+		$("#config-a").show('slow');
+	})
+</script>
+
+<script>
+//添加新题型
+jQuery.e_type_add = function(e_type) {   
+	jQuery.translate(e_type);
+	$("#e-type-list").append("<div class=\"new-e-type\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\"><h4 class=\"sidelines text-center\"><span id=\""+e_type+"\" class=\"e-type-name\" style=\"cursor: pointer; font-weight: normal;\">"+e_type_name+"</span></h4><div class=\"drop-help\" style=\"height: 50px; line-height: 50px; background:rgba(245,245,245,0.5); border-radius: 10px; font-size: 14px;\">点击添加按钮或拖拽到此处释放</div><button class=\"display-toggle btn btn-small btn-navy\">展开/隐藏试题详情</button></div>");
+	jQuery.hover_delete();
+};  
+
+//悬浮显示删除线
+jQuery.hover_delete = function(){
+	$(".e-type-name").hover(function(){
+		$(this).css({"text-decoration": "line-through", "color":"#fa6c65"});
+		},function(){
+			$(this).css({"text-decoration": "", "color": ""});
+		});
+};
+
+//题型标识转换
+jQuery.translate = function(e_type){
+	switch(e_type){
+		case("s-choice"): e_type_name = '单选题'; break;
+		case("m-choice"): e_type_name = '多选题'; break;
+		case("judge"): e_type_name = '判断题'; break;
+		case("blank"): e_type_name = '填空题'; break;
+		case("s-answer"): e_type_name = '简答题'; break;
+	}
+};
+
+//添加试题
+jQuery.e_add = function(e_type, id, descri){
+			$("#"+e_type).parent().siblings(".drop-help").remove();
+			$("#"+e_type).parent().siblings("div").show();
+			$("#"+e_type).parent().nextAll("button").before("<div class=\"col-md-12 border\" style=\"padding: 5px; margin-bottom: 10px;\"><div class=\"col-md-1\" style=\"\"><span class=\"e-del fa fa-lg fa-close\" style=\"cursor: pointer; color: #d9534f;\"></span></div><div class=\"col-md-11 text-left\" style=\"padding: 0px;\"><a class=\"e-view\" href=\"\" data-toggle=\"modal\" data-id=\""+id+"\" data-type=\""+e_type+"\"><p style=\"font-size: 14px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">"+descri+"</p></a></div></div>")
+};
+
+//保存草稿
+jQuery.draft_save = function(){
+	var courseID = $("#id_courseID").val(),
+		title = $("#id_title").val(),
+		intro = $("#id_intro").val(), 
+		dict = {};
+	$(".new-e-type").each(function(){
+		var e_type = $(this).find("span.e-type-name").attr("id");
+		dict[e_type] = {};
+		e = $(this).find(".e-view");
+		$.each(e, function(i, item){
+			var e_id = $(this).data("id"),
+				e_descri = $(this).text();
+			dict[e_type][e_id] = e_descri;
+		});
+
+		data = {
+			'courseID': courseID,
+			'title': title,
+			'intro': intro,
+			dict,
+		};
+		data_json = JSON.stringify(data);
+		$.ajax({
+		    url: "/exam/teacher/build/draft/"+courseID+"/0/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    data: data_json,
+		    success: function(result){
+		    	console.log(result);
+		    }
+		});
+	})
+}
+</script>
+
+<!--添加题型-->
+<script>
+	$("#add-btn").click(function(){
+		var e_type = $("#e-type").val();
+		if ($("#"+e_type).length > 0){
+			alert("该题型已存在");
+		}else{
+			jQuery.e_type_add(e_type);
+		}
+	})
+
+</script>
+
+<!--隐藏和显示题型-->
+<script>
+$(document).on("click", ".display-toggle", function(){
+	$(this).siblings("div").toggle();
+})
+</script>
+
+<!--删除题型-->
+<script>
+$(document).on("click", ".e-type-name", function(){
+	var ele = $(this);
+	$("#item-title").text("删除题型吗？");
+	$("#item-content").text("该题型下已选题目将一起删除");
+	$("#modal-utli").modal('show');
+	$(".confirm-btn").click(function(){
+		ele.parent().parent().remove();
+		$("#modal-utli").modal('hide');
+	});
+})
+</script>
+
+<!--搜索题库-->
+<script>
+	$("#query-submit").click(function(){
+		event.preventDefault();
+		var courseID = $('#id_courseID').val();
+		var e_type = $("#id_e_type").val();
+		var keyword = $("#id_keyword").val();
+		var csrftoken = $.cookie("csrftoken");
+		var url = "/exam/teacher/bank/query/";
+		$("#candidate").load(url, {'csrfmiddlewaretoken': csrftoken,'courseID':courseID, 'e_type': e_type, 'keyword': keyword});
+
+	})
+</script>
+
+<!--草稿保存-->
+<script>
+$("#save-draft").click(function(){
+	jQuery.draft_save();
+	alert("已为您保存草稿!")
+})
+</script>
+
+<!--应用草稿跳转-->
+<script>
+	$("#apply-draft").click(function(){
+		var courseID = $("#id_courseID").val();
+		location.href = "/exam/teacher/build/draft/"+courseID+"/0/";
+	})
+</script>
+
+
+<!--应用草稿-->
+<script>
+$(document).ready(function(){
+	var courseID = "{{ draft.courseID.courseID }}",
+		title = "{{ draft.title }}",
+		intro = "{{ draft.intro }}";
+	if (courseID.length > 0){
+	var draft_string = $("#draft-string").text(),
+		draft_json = JSON.parse(draft_string);
+	$("#draft-string").append("<div id=\"drafting\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在应用草稿...</span></div>")
+	$("#id_courseID").val(courseID);
+	$("#id_title").val(title);
+	$("#id_intro").val(intro);
+	$.each(draft_json, function(e_type, item){
+		jQuery.translate(e_type);
+		jQuery.e_type_add(e_type);
+		$.each(item, function(id, descri){
+			jQuery.e_add(e_type, id, descri)
+		})
+	});
+	$("#draft-string").remove();
+	}
+})
+</script>
+
+<!--自动生成随机试卷-->
+<script>
+$("#generate-a").click(function(){
+	$("#e-type-list").append("<div id=\"randoming\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在加载试题...</span></div>")
+	var courseID = $("#id_courseID").val();
+	var dict = {};
+	$("#config-a-form input").each(function(){
+		var e_type = $(this).data("type");
+		var count = $(this).val()||0;
+		if (count != 0){
+			dict[e_type] = count;
+	}
+	})
+	var data = {
+		'courseID': courseID,
+		dict,
+	}
+	var json = JSON.stringify(data)
+	$.ajax({
+	    url: "{% url 'exam_auto_generate' %}",
+	    type: "POST",
+	    headers: {"X-CSRFToken": $.cookie("csrftoken") },
+	    data: json,
+	    success: function(result){
+			$("#e-type-list").empty();
+			$.each(result['result'], function(e_type, item){
+				jQuery.translate(e_type);
+				jQuery.e_type_add(e_type);
+				$.each(item, function(id, descri){
+					jQuery.e_add(e_type, id, descri)
+				})
+			});
+	    }
+	});
+	$("#randoming").remove();
+})
+</script>
+
+<!--提交试卷信息，生成配分窗-->
+<script>
+$("#next-step").click(function(){
+	var dict = {};
+	$(".new-e-type").each(function(){
+		var e_type = $(this).find("span.e-type-name").attr("id");
+		dict[e_type] = {};
+		e = $(this).find(".e-view");
+		$.each(e, function(i, item){
+			var e_id = $(this).data("id"),
+				e_descri = $(this).text();
+			dict[e_type][e_id] = e_descri;
+		});
+	})
+	if ($.isEmptyObject(dict) == false){
+		$(this).parent().after("<div id=\"generating\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin fa-lg\"></span><span>&nbsp;&nbsp;请稍等，处理中...</span></div>")
+	
+		$("#point-distrib").empty();
+		console.log(dict)
+		$.each(dict, function(e_type, item){
+			jQuery.translate(e_type);
+			$("#point-distrib").append("<div class=\"col-md-12\"><h3 class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
+			$.each(item, function(e_id, descri){
+		    	$("#point-distrib-footer"+e_type).before("<div class=\"col-md-12\" style=\"font-size: 14px;\"><span>分值：<input type=\"text\" class=\"e-point\"  style=\"height: 25px; width: 50px; margin-bottom: 0px; margin-right: 10px;\" data-id=\""+e_id+"\" class=\"form-control\" oninput=\"CalPoint()\"/></span><span>"+descri+"</span></div>")
+			})
+		})
+		$("#generating").remove();
+		$("#modal-point-distrib").modal('show');
+	};
+})
+</script>
+
+<!--批量配分，总分核算-->
+<script>
+function BulkPoint(){
+	var bulk_point = event.target.value;
+	console.log(bulk_point)
+	$(event.target).closest(".col-md-10").siblings().find(".e-point").val(bulk_point);
+	CalPoint();
+}
+</script>
+
+<script>
+function CalPoint(){
+	$(event.target).closest(".col-md-12").prevAll(".col-md-10").find(".bulk-point").val("----");
+	var addup_point = 0;
+	$(".e-point").each(function(){
+		var point = $(this).val();
+		addup_point = addup_point*1 + point*1;
+	});
+	$("#point-addup").text(addup_point);
+}
+</script>
+
+<!--试卷上传-->
+<script>
+	$(".upload-btn").click(function(){
+		var dict = {}
+		$(".modal-e-type").each(function(){
+			var e_type = $(this).text();
+				dict[e_type] = {}
+			$(this).siblings(".col-md-12").each(function(){
+				var e_id = $(this).find("input").data("id"),
+					point = $(this).find("input").val();
+				dict[e_type][e_id] = point;
+			})
+		});
+		var courseID = $("#id_courseID").val();
+		var title = $("#id_title").val();
+		var intro = $("#id_intro").val();
+		var data = {
+			'courseID': courseID,
+			'title': title,
+			'intro': intro,
+			dict,
+		}
+		var json = JSON.stringify(data)
+		$.ajax({
+		    url: "{% url 'exam_build' %}",
+		    type: "POST",
+		    headers: {"X-CSRFToken": $.cookie("csrftoken") },
+		    data: json,
+		    success: function(result){
+		    	location.href = "/exam/teacher/"+courseID+"/";
+		    }
+		});
+	})
+</script>
+
+
+<!--查看试题-->
+<script>
+$(document).on("click", ".e-view", function(){
+	e_type = $(this).data("type");
+	id = $(this).data("id");
+	data = {
+		'e_type': e_type,
+		'id': id,
+	}
+	$.ajax({
+	    url: "{% url 'exam_retrieve' %}",
+	    type: "GET",
+	    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+	    data: data,
+	    success: function(result){
+    		$("#item-content-min").empty();
+    		data = JSON.parse(result);
+    		console.log(data);
+	    	$.each(data[0], function(i, item){
+	    		$("#item-content-min").append("<h4>"+i+"："+item+"</h4>")
+	    	});
+	    	$("#modal-utli-min").modal('show');
+	    }
+	});
+})
+</script>
+
+<!--删除试题-->
+<script>
+$(document).on("click", ".e-del", function(){
+	$(this).parent().parent().remove();
+})
+</script>
+
+{% endblock javascript %}

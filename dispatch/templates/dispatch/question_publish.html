@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}发布新问题{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">发布新问题</h1>
+		</section>
+		<section id="course-info" class="border-top-lg inner-top-xs">
+			<h3 class="sidelines text-center"><span>创建新问题</span></h3>
+			<div class="row"> 
+				<div class="col-sm-12 inner-top-xs inner-right-xs">
+				<form action="" method="POST" style="display:bolck;">
+				{% csrf_token %}
+				{{ form.questionID.as_hidden }}
+				{{ form.user_id.as_hidden }}
+				{{ form.status.as_hidden }}
+				{{ form.courseID.as_hidden }}
+				<div class="col-sm-6">
+					<label>题目：</label>
+					<div class="input-group margin-bottom-sm">
+					<span class="input-group-addon">
+						<span class="fa fa-question fa-fw"></span>
+					</span>
+					<input type="text" name="subject" maxlength="500" required id="id_subject" class="form-control" placeholder="题目" />
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<br/>
+				</div>
+				<div class="col-sm-12">
+					<label>问题描述：</label>
+					<textarea name="content" cols="40" rows="10" required id="id_content" class="form-control" placeholder="问题描述"></textarea>
+				</div>
+				<div class="col-sm-12 inner-bottom-xs">
+					<label>截止日期：</label>
+					<div class="input-group margin-bottom-sm">
+					<span class="input-group-addon">
+						<span class="fa fa-calendar fa-fw"></span>
+					</span>
+					<input type="text" name="ddl" maxlength="255" required id="id_ddl" class="form-control" placeholder="截至日期" />
+					</div>
+				</div>
+				<div class="col-sm-12 inner-bottom-sm">
+			        <a href='javascript:void(0);' class="blueButton">上传附件</a>
+			        <input id="id_file" class="myFileUpload" type="file" name="file"/>
+			        <div class="show"></div>
+		        </div>
+				<input class="btn btn-navy" type="submit" value="确认">
+				</form>
+				</div>
+			</div>
+		</section>
+
+		<section class="inner-bottom-xs inner-top-xs">
+			<div class="row">
+			<h3 class="sidelines text-center"><span>已发布的作业</span></h3>
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<ul class="fa-ul">
+					{% if questions_query %}
+					{% for question in questions_query %}
+						<li>
+							<span class="fa-li fa fa-check-square"></span><a href="/dispatch/{{ question.courseID.courseID }}/{{ question.pk }}/review">&nbsp;&nbsp;{{ question.subject }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ question.created_at|timesince }}</a>
+						</li>
+					{% endfor %}
+					</ul>
+					{% else %}
+					<p>未有已发布的作业</p>
+				{% endif %}
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-success" tabindex="-1" role="dialog" aria-labelledby="modal-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-success">
+					发布成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>已发布新的作业！</h2>
+					<p>新的作业（连同附件）已上传完成！</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+	<!-- 自动填写 -->
+	<script>
+	function autofill(){
+		var mydate = new Date();
+		$('#id_user_id').val({{ request.user.user_id}});
+		$('#id_questionID').val({{ courseID }}+''+ {{ number|stringformat:"02d" }}+''+mydate.getMilliseconds());
+		$('#id_courseID').val({{ courseID }});
+	}
+	autofill()
+	</script>
+
+	<!-- 日历控件 -->
+	<script>
+	$(function() {
+		$( "#id_ddl" ).datepicker({showAnim: "slide"});
+	});
+	</script>
+
+	<!-- 答案上传 -->
+	<script>
+	function publish(event) {
+	event.preventDefault();
+	var data = new FormData($('form').get(0));
+
+	$.ajax({
+	    url: $(this).attr('action'),
+	    type: $(this).attr('method'),
+	    data: data,
+	    cache: false,
+	    processData: false,
+	    contentType: false,
+	    success: function(result){   
+	    	console.log(result);
+			$('#modal-success').modal('show');
+			$('.close-btn').click(function(){
+				location.reload(true); 
+			});
+	    }
+	});
+	return false;
+	}
+
+	$(function() {
+	    $('form').submit(publish);
+	});
+	</script>
+
+	<!-- 上传文件名显示 -->
+	<script>
+    $(document).ready(function()
+    {
+        $(".myFileUpload").change(function()
+        {
+            var arrs=$(this).val().split('\\');
+            var filename=arrs[arrs.length-1];
+            $(".show").html(filename);
+        });
+    });
+	</script>
+
+{% endblock javascript %}
+

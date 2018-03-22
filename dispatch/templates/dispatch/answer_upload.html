@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% block title %}提交答案{% endblock title %}
+{% load custom_filters %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">提交答案</h1>
+		</section>
+
+		<section class="border-top-lg">
+			<div class="row"> 
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>{{ question.0.subject }}</span>
+					</h2>
+					<p style="font-size:16px;">来自课程：{{ question.0.courseID.course }}</p>
+					<p style="font-size:16px;">问题描述：{{ question.0.content }}</p>
+					{% if question.0.file %}
+						<a href="/media/{{ question.file }}" style="display:block; font-size:14px;">附件：{{ question.0.file | slice_filepath:1 }}</a><br/>
+	  				{% else %}
+	  					<p style="font-size:16px;">附件：无</p>
+	  				{% endif %}
+					<p style="font-size:16px;">截至时间：{{ question.0.ddl }}</p>
+					{% if question.0.status %}
+						<p style="color:#1ABB9C; font-size:16px;">状态：开放中</p>
+					{% else %}
+						<p style="color:#d9534f; font-size:16px;">状态：已关闭</p>
+					{% endif %}
+				</div>
+			</div>
+		</section>
+
+		<section class="inner-bottom-xs inner-top-xs">
+			<div class="row">
+			{% if question.0.status %}
+			<h3 class="sidelines text-center"><span>提交答案</span></h3>
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<form action="" method="post" id="file-upload-form" enctype="multipart/form-data"> 
+						{% csrf_token %}
+						{{ form.user_id.as_hidden }}
+						{{ form.questionID.as_hidden }}
+						<input id="id_subject" class="form-control" type="text" name="subject" maxlength="500" required placeholder="答案标题" />
+						<textarea id="id_content" class="form-control" name="content" cols="40" rows="10" required placeholder="内容"></textarea>
+						{{ form.accepted.as_hidden }}
+						{{ form.status.as_hidden }}
+						<div class="col-sm-12 inner-bottom-sm">
+					        <a href='javascript:void(0);' class="blueButton">上传附件</a>
+					        <input id="id_file" class="myFileUpload" type="file" name="file"/>
+					        <div class="show"></div>
+				        </div>
+					    <div>
+					    <button id='upload-btn' class="btn btn-block" type="submit">提&nbsp;交&nbsp;答&nbsp;案</button>
+					    </div>
+					</form>
+				</div>
+			{% else %}
+			<h3 class="sidelines text-center"><span>该问题已关闭</span></h3>
+			<ul class="text-center"><h4>问题关闭的原因可能是：</h4>
+				<br />
+				<li style="font-size:15px;">超过截至时间</li>
+				<br />
+				<li style="font-size:15px;">由于其他原因，教师关闭了该问题</li>
+			</ul>
+			{% endif %}
+			</div>
+		</section>
+
+		<div id="my-answers"></div>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-upload-success" tabindex="-1" role="dialog" aria-labelledby="modal-upload-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-upload-success">
+					上传成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>已上传你的答案！</h2>
+					<p>你的答案（连同附件）已上传完成！</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="modal-delete" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete">
+					确认删除
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>确认删除该答案？</h2>
+					<p>该答案，连同附件将被删除，确认删除吗？</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="delete-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" id="delete-cancel" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete-success" tabindex="-1" role="dialog" aria-labelledby="modal-delete-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete-success">
+					删除成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>已删除选择的答案</h2>
+					<p>你的答案（连同附件）已被删除，关闭消息栏后自动刷新</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="final-close-btn" type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete-fail" tabindex="-1" role="dialog" aria-labelledby="modal-delete-fail" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete-fail">
+					删除失败
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>未能删除选择的答案</h2>
+					<p>答案已被评分，不能删除！</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="final-close-btn" type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'jquery-cookie-1.4.1/jquery.cookie.js' %}"></script>
+
+	<script>
+	$(document).ready(function(){
+		$("#my-answers").load('all/');
+	})
+	</script>
+
+	<!-- 自动填写 -->
+	<script>
+	function autofill(){
+		$('#id_user_id').val({{ request.user.user_id}});
+		var url = document.location.toString();
+		var url_slice = url.split('/');
+		var questionID = url_slice[url_slice.length-3]
+		console.log(questionID)
+		$('#id_questionID').val(questionID);
+	}
+	autofill()
+	</script>
+
+	<!-- 自定义答案上传按钮样式 -->
+	<script>
+	    $(document).ready(function()
+	    {
+	        $(".myFileUpload").change(function()
+	        {
+	            var arrs=$(this).val().split('\\');
+	            var filename=arrs[arrs.length-1];
+	            $(".show").html(filename);
+	        });
+	    });
+	</script>
+
+	<!-- 答案上传 -->
+	<script>
+	function upload(event) {
+	event.preventDefault();
+	var data = new FormData($('form').get(0));
+
+	$.ajax({
+	    url: $(this).attr('action'),
+	    type: $(this).attr('method'),
+	    data: data,
+	    cache: false,
+	    processData: false,
+	    contentType: false,
+	    success: function(result) {
+			$("#modal-upload-success").modal('show');
+			$('.close-btn').click(function(){
+				location.reload(true); 
+			});
+	    }
+	});
+	return false;
+	}
+
+	$(function() {
+	    $('form').submit(upload);
+	});
+	</script>
+
+	<!-- 删除答案及模态窗触发 -->
+	<script>
+	$(".delete-btn").click(function(){
+	event.preventDefault();
+	var pk= $(this).val();
+	var data = {
+            'pk': pk,
+        };
+	$('#modal-delete').modal('show');
+
+	$('#delete-confirm').click(function(){
+		$.ajax({
+		    url: "/dispatch/answer/delete/"+pk+"/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    data: data,
+		    success: function(result){   
+				console.log(result);
+		    	if (result['result'] == true){
+					$('#modal-delete-success').modal('show');
+					$('.close-btn').click(function(){
+						location.reload(true); 
+					});
+		    	}
+		    	else{
+		    		$('#modal-delete-fail').modal('show');
+					$('.close-btn').click(function(){
+						location.reload(true); 
+					});
+		    	}
+		    }
+		})
+	});
+	});
+	</script>
+
+
+{% endblock javascript %}

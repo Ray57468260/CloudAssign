@@ -1,0 +1,64 @@
+
+<div class="col-md-12 border-bottom" style="padding-top: 5px;">
+	<input id="check-all" type="checkbox" style="height: 18px; width: 30px;">
+	<span style="font-size:16px; height: 18px; width: 30px; margin-left: 15px; margin-bottom: 5px;">全选</span>
+</div>
+<div id="candidates-list">
+	{% for item in items %}
+	<div class="col-md-12 border-bottom" style="padding-top: 5px;">
+		<input type="checkbox" value="{{ item.pk }}" data-type="{{ e_type }}" style="height: 18px; width: 30px;">
+		<a class="e-view" href="javascript:void(0)" style="font-size: 16px;">&#12288;{{ item.descri }}</a>
+	</div>
+{% endfor %}
+</div>
+
+
+<!--模态窗-->
+<div class="modal fade" id="modal-utli-min" tabindex="-1" role="dialog" aria-labelledby="modal-utli-min" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-utli-min">
+					通用模态消息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="text-center">
+					<h4 id="item-title-min"></h4>
+					<p id="item-content-min" style="font-family:Microsoft Yahei;"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+
+<script>
+	$("#check-all").change(function(){
+		if ($(this).is(':checked')){
+			$('#candidates-list input:checkbox').each(function() {
+				$(this).attr('checked', true);
+			});
+		}else{
+			$('#candidates-list input:checkbox').each(function() {
+				$(this).attr('checked', false);
+			});
+		}
+	})
+</script>
+
+<script>
+	$(document).ready(function(){
+		$(".fa-spinner").parent().remove();
+	})
+</script>

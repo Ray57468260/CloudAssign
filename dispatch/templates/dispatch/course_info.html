@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}课程详情{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<style>
+	p{
+		font-size: 16px;
+	}
+</style>
+
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">课程详情</h1>
+		</section>
+		<section class="border-top-lg">
+			<div class="row"> 
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>{{ course.course }}
+						</span>
+					</h2>
+					<p>授课教师：{{ course.teacher }}</p>
+					<p>课程简介：{{ course.intro }}</p>
+					<p>已有作业：</p>
+					<div id="{{ course.courseID }}" class="col-md-12 inner-bottom-xs questions-already">
+					{% if questions_query %}
+					{%for question in questions_query %}
+						{% if request.user.is_teacher %}
+						<div class="col-md-6" style="margin-top: 10px;">
+							<span class="fa fa-arrow-circle-right"></span>
+							<span style="font-family:Microsoft YaHei; margin-left: 10px;">
+								<a href="/dispatch/{{ question.courseID.courseID }}/{{ question.pk }}/review">{{ question.subject }}</a>
+							</span>
+						</div>
+						{% else %}
+						<div class="col-md-6" style="margin-top: 10px;">
+							<span class="fa fa-arrow-circle-right"></span>
+							<span style="font-family:Microsoft YaHei; margin-left: 10px;">
+								<a href="/dispatch/{{ question.courseID.courseID }}/{{ question.pk }}/upload">{{ question.subject }}</a>
+							</span>
+						</div>
+						{% endif %}
+					{% endfor %}
+					{% else %}
+					<p>未发布任何作业</p>
+					{% endif %}
+					</div>
+					
+					{% if request.user.is_teacher %}
+					<div class="col-md-12">
+						<a href="/dispatch/{{ course.courseID }}/publish/" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;发布新作业</a>
+						<a href="/exam/teacher/{{ course.courseID }}/build/" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;创建新试卷</a>
+						<a href="/exam/teacher/{{ course.courseID }}/" class="btn btn-lg btn-blue"><i class="fa fa-print"></i>&nbsp;试卷管理</a>
+						<button id="course-edit" class="btn btn-lg btn-blue"><i class="fa fa-cog"></i>&nbsp;编辑课程信息</button>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</section>
+
+		<section class="inner-bottom-xs inner-top-xs">
+			<div class="row">
+			<h3 class="sidelines text-center"><span>点名册</span></h3>
+				<div class="col-sm-12 inner-right-xs">
+					{% if course_students %}
+						<div class="col-sm-12">
+							<h4>总人数:{{ course_students_num }}</h4>
+							<p>按学号排序
+							<span class="fa fa-long-arrow-right"></span>
+							<br />
+							<br />
+							</p>
+						</div>
+						{% for student in course_students %}
+						<div class="col-sm-4">
+							<p>{{ student.user_id }}</p>
+							<p>{{ student.name }}</p>
+						</div>
+						{% endfor %}
+					{% else %}
+						<p>未有订阅该课程的学生</p>
+					{% endif %}
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-labelledby="modal-edit" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-edit">
+					编辑课程信息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<h2 align="center">修改作业信息</h2>
+				<div class="text-center">
+					<h4 align="left";>课程名</h4>
+					<input type="text" name="subject" maxlength="500" required id="course" class="form-control" placeholder="标题" />
+					<h4 align="left";>课程简介</h4>
+					<textarea name="content" cols="40" rows="10" required id="intro" class="form-control" placeholder="问题描述"></textarea>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="edit-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+	<!-- 修改课程信息 -->
+	<script>
+	$("#course-edit").click(function(){
+	event.preventDefault();
+	$('#modal-edit').modal('show');
+	$.ajax({
+		url:"edit/",
+		type:"GET",
+		headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		success:function(result){
+			$(function(){
+			$('#course').val(result[0]['fields']['course']);
+			$('#intro').val(result[0]['fields']['intro']);
+
+		})
+		$('#edit-confirm').click(function(){
+			course = $("#course").val();
+			intro = $('#intro').val();
+			var data = {
+		            'course': course,
+		            'intro': intro,
+		        };
+			$.ajax({
+			    url: "edit/",
+			    type: "POST",
+			    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			    data: data,
+			    success: function(result){  
+					location.reload(true);
+			    }
+			})
+		});
+		}
+	})
+	});
+	</script>
+
+	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+	<!-- 日历控件 -->
+	<script>
+	$(function() {
+		$( "#question-ddl" ).datepicker({showAnim: "slide"});
+	});
+	</script>
+
+{% endblock javascript %}
+

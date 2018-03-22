@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}定制工具{% endblock title %}
+{% load static %}
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<style type="text/css">
+	p{
+		margin-bottom: 0px;
+	}
+</style>
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="inner-bottom-xs">
+			<h1 align="right">定制工具</h1>
+		</section>
+		<section class="border-top-lg">
+			<div class="row"> 
+				<div class="col-sm-12 inner-right-xs inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>题库标准化转换</span>
+					</h2>
+				</div>
+				<div class="col-md-12 border-bottom">
+					<div style="font-size: 16px;">
+						<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+						<span style="margin:0px">使用前请先阅读以下内容，这将关系到您的原始题库能否被正确转换！</span>
+					</div>
+					<div style="font-size: 14px; margin-left: 20px;">
+						<br />
+						<p>原始题库上传前必须经过人工预处理，步骤如下：</p>
+						<p>①使用英文花括号{}将问题(连同选项和答案)包括起来，括弧内侧与文字间不能有空格</p>
+						<p>②题干及单个答案(选项)内部不能使用空格，若要划分，请使用逗号和句号</p>
+						<p>③题干与选项、题干与答案、选项与答案之间请用空格或换行符分隔</p>
+						<p>④文档命名使用如"单选题"、"多选题"、"简答题"、"判断题"、"填空题"，保存格式为.docx(office 2008及以上版本)</p>
+						<p>⑤填空题的横线用英文下划线代替，而非下划线格式的空格；答案按序排在题干后</p>
+					</div>
+				</div>
+				<div class="col-md-6 col-md-offset-3 inner-top-xs text-center">
+					<form action="" method="POST" enctype="multipart/form-data">
+						{% csrf_token %}
+		        		<input id="id_file" type="file" name="file" />
+			        	<button id="btn-prefile-upload" class="btn btn-block btn-navy" type="submit">上传</button>
+					</form>
+					<div id="show-finished" class="inner-top-xs">
+						<div class="col-md-12 inner-bottom-xs">
+							<span class="fa fa-long-arrow-down"></span><span>&nbsp;&nbsp;转换成功的文件&nbsp;&nbsp;</span><span class="fa fa-long-arrow-down"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+	</div>
+</div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+<!-- 上传预处理的题库 -->
+<script>
+function upload(event) {
+event.preventDefault();
+var data = new FormData($('form').get(0));
+
+$("#btn-prefile-upload").before("<div id=\"transfering\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在转换上传的题库...</span></div>");
+
+$.ajax({
+    url: $(this).attr('action'),
+    type: $(this).attr('method'),
+    data: data,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(result) {
+    	console.log(result);
+    	if (result['errors'] == 'wrong filename'){
+    		alert("上传文件的文件名/文件格式错误!");
+    	}else{
+	    	$("#show-finished").append("<div class=\"col-md-4 text-center\"><a href=/"+result['path']+"><span class=\"fa fa-file-excel-o fa-2x green\">&nbsp;</span></a><div>"+result['e_type_name']+"</div></div>")
+	    }
+    },
+});
+$("#transfering").remove();
+}
+
+$(function() {
+    $('form').submit(upload);
+});
+</script>
+{% endblock javascript %}
+

@@ -1,0 +1,65 @@
+
+{% for item in items %}
+<div class="col-md-12 border-bottom" style="padding-top: 5px;">
+	<span data-id="{{ item.pk }}" data-type="{{ e_type }}" class="e-add fa fa-plus-square green" style="margin-top: 12px; cursor: pointer;"></span>
+	<span style="font-size: 16px;" draggable="true" ondragstart="drag(event)" >&#12288;{{ item.descri }}</span>
+</div>
+{% endfor %}
+
+
+<!--从搜索栏添加试题-->
+<script>
+$(".e-add").on("click", function(){
+	var e_type = $(this).data("type");
+	var id = $(this).data("id");
+	var descri = $(this).next().text();
+	if ($("#"+e_type).length > 0){
+		jQuery.e_add(e_type, id, descri);
+	}else{
+		alert("请先添加相应题型！")
+	}
+})
+</script>
+
+<script>
+	$(document).ready(function(){
+		$(".fa-spinner").parent().remove();
+	})
+</script>
+
+
+<script>
+function allowDrop(ev)
+{
+ev.preventDefault();
+}
+
+function drag(ev)
+{
+var e_type = $(ev.target).prev().data("type"),
+	e_id = $(ev.target).prev().data("id"),
+	e_descri = $(ev.target).text(),
+	data = {
+		'e_type': e_type,
+		'e_id': e_id,
+		'e_descri': e_descri,
+	},
+	json = JSON.stringify(data)
+ev.dataTransfer.setData("Text", json);
+}
+
+function drop(ev)
+{
+ev.preventDefault();
+var json = ev.dataTransfer.getData("Text"),
+	data = JSON.parse(json),
+	e_type = data['e_type'],
+	e_id = data['e_id'],
+	e_descri = data['e_descri'];
+
+if ($("#"+e_type).length > 0){
+	jQuery.e_add(e_type, e_id, e_descri);
+}else{
+	alert("请先添加相应题型！")}
+}
+</script>

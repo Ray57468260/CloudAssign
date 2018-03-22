@@ -1,0 +1,52 @@
+
+<div class="custom-form" style="font-size: 14px;">
+	<h4 class="sidelines text-center" style="font-weight: normal;">
+		<span><a id="toggle-one-form-edit" href="javascript:void(0)">编辑试题表单</a></span>
+	</h4>
+	<form id="one-form-edit" action="one/">
+		{{ form.as_p }}
+    	<button id="btn-import-one-edit" class="btn btn-small btn-block btn-navy" type="submit">上传</button>
+	</form>
+</div>
+<!--自动填写-->
+<script>
+	var answer = "{{ queryset.answer }}";
+	$("#id_descri").val("{{ queryset.descri }}");
+	$("#id_A").val("{{ queryset.A }}");
+	$("#id_B").val("{{ queryset.B }}");
+	$("#id_C").val("{{ queryset.C }}");
+	$("#id_D").val("{{ queryset.D }}");
+	$("#id_E").val("{{ queryset.E }}");
+	$("#id_F").val("{{ queryset.F }}");
+	if (answer == "True"){
+		$("#id_answer").attr("checked", true);
+	}else{
+		$("#id_answer").val(answer);
+	}
+</script>
+
+
+<!--编辑后上传单条试题-->
+<script>
+	$("#btn-import-one-edit").on("click", function(){
+		event.preventDefault();
+		var form = $("#one-form-edit").serialize();
+		$.ajax({
+			url: "edit/"+e_type_edit+"/"+e_id_edit+"/",
+			type: "POST",
+			headers: { "X-CSRFToken": $.cookie("csrftoken") },
+			data: form,
+			success: function(result){
+				console.log(result);
+				$("#query-submit").trigger("click");
+			}
+		})
+	})
+</script>
+
+<!--隐藏表单开关-->
+<script>
+$("#toggle-one-form-edit").click(function(){
+	$("#one-form-edit").toggle('slow');
+});
+</script>

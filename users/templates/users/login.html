@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="row">
+	<section>
+		<h1 align="middle">登录我的账号</h1>
+	</section>
+
+	<section class="border-top-md">
+		<div class="row">
+			<div class="col-sm-12 inner-right-xs inner-bottom-xs">
+				<div class="text-center inner-top-xs">
+					<div class="col-md-4 col-md-offset-4">
+					<div class="form-wrapper">
+						<form method="post" action=".">
+							{% if form.errors %}
+								{% include "users/partials/errors.html" %}
+							{% endif %}
+							{% csrf_token %}
+							{% for field in form %}
+								{% include "users/partials/field.html" %}
+							{% endfor %}
+							<br>
+							<div class="button-wrapper submit">
+								<input class="btn" type="submit" value="登&nbsp;&nbsp;&nbsp;&nbsp;录" />
+							</div>
+							<input type="hidden" name="next" value="{{ next }}" /><br>
+							<div align="left";>
+								<span><a class="btn btn-navy" href="{% url 'users_password_reset' %}" style="margin:0px;">忘记密码?</a></span>
+								<span><a class="btn btn-blue" href="{% url 'users_register' %}" style="margin:0px;">注册</a></span>
+							</div>
+						</form>
+					</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
+{% endblock %}

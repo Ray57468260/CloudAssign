@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="col-md-12 text-center">
+	<h3>成功注销账号！</h3>
+	<a href="/">即将返回到首页，若浏览器没有反应，请点击此处</a>
+</div>
+{% endblock %}
+
+{% block javascript %}
+
+<script>
+	$(document).ready(function(){
+		setTimeout(function(){
+			window.location.href="/";
+		}, 2000);
+	})
+</script>
+
+{% endblock %}

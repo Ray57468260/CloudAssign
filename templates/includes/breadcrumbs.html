@@ -1,0 +1,35 @@
+{% load custom_filters %}
+<div class="breadcrumbs row">
+	<div class="col-md-12">
+	<ol class="breadcrumb" style="font-size:16px;">现在位置：
+	    <li><a href="/">首页</a></li>
+	    {% if request.user.is_teacher %}
+	    <li class="courses" style="display:none;"><a href="/dispatch/teacher/">我的课程</a></li>
+	    <li class="course" style="display:none;"><a href="/dispatch/{{ request.get_full_path | slice_url:1 }}">当前课程</a></li>
+	    <li class="question" style="display:none;"><a href="{{ request.get_full_path }}">作业评分/统计</a></li>
+	    {% else %}
+	    <li class="courses" style="display:none;"><a href="/dispatch/student/">我的课程</a></li>
+	    <li class="course" style="display:none;"><a href="/dispatch/{{ request.get_full_path | slice_url:1 }}">当前课程</a></li>
+	    <li class="question" style="display:none;"><a href="{{ request.get_full_path }}">提交作业</a></li>
+	    {% endif %}
+	</ol>
+	</div>
+</div>
+
+<script>
+{#判断当前位置，若url组长度8则处于作业位置，长度6且第5元素不为NaN（表明是第5元素是数字字符串）则处于某一课程位置，否则处于课程总览位置#}
+	$(document).ready(function(){
+		var url_group = window.location.href.split('/');
+		var sample = parseInt(url_group[4]);
+		if (url_group.length == 8){
+			$(".courses").show();
+			$(".course").show();
+			$(".question").show().addClass('active');
+		}else if(url_group.length == 6 && !isNaN(sample)){
+			$(".courses").show();
+			$(".course").show().addClass('active');
+		}else{
+			$(".courses").show().addClass('active');
+		}
+	})
+</script>

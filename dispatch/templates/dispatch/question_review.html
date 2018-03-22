@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% block title %}作业评分{% endblock title %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+{% include 'includes/breadcrumbs.html' %}
+<div class="row">
+	{% include 'includes/sidenav.html' %}
+	<div class="col-md-9 inner-left-md border-left">
+		<section class="row inner-bottom-xs">
+			<nav class="col-md-6 inner-top-xs">
+				<h3>
+				<a href="{{ request.get_full_path | replace_url:'review,statistics' }}"><span class="fa fa-chevron-left"></span>&#12288;作业统计</a></h3>
+			</nav>
+			<div class="col-md-6">
+				<h1 align="right">作业评分</h1>
+			</div>
+		</section>
+		<section class="border-top-lg inner-bottom-xs">
+			<div class="row">
+				<div class="col-sm-12 inner-right-xs inner-bottom-xs">
+					<div class="text-center inner-top-xs">
+					<h2 class="sidelines text-center">
+						<span>题目：{{ question.subject }}</span>
+					</h2>
+					</div>
+					<p style="font-size:16px;">问题描述：{{ question.content }}</p>
+					<p style="font-size:16px;">截止日期：{{ question.ddl }}	</p>
+					{% if question.status %}
+					<p style="color:#1ABB9C; font-size:16px;">状态：开放中</p>
+					{% else %}
+					<p style="color:#d9534f; font-size:16px;">状态：已关闭</p>
+					{% endif %}
+					<div>
+					<button id="question-edit" class="btn btn-lg" value="{{ question.questionID }}" style="background:#428bca;"><i class="fa fa-cog fa-lg"></i>&nbsp;编&nbsp;辑&nbsp;该&nbsp;作&nbsp;业</button>
+					{% if question.status %}
+					<button id="question-close" class="btn btn-danger" value="{{ question.questionID }}"><i class="fa fa-close fa-lg"></i>&nbsp;关&nbsp;闭&nbsp;该&nbsp;作&nbsp;业</button>
+					{% else %}
+					<button id="question-open" class="btn btn-danger" value="{{ question.questionID }}"><i class="fa fa-check fa-lg"></i>&nbsp;开&nbsp;放&nbsp;该&nbsp;作&nbsp;业</button>
+					{% endif %}
+					<button id="question-delete" class="btn btn-red" value="{{ question.questionID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;该&nbsp;作&nbsp;业</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section>
+			<h3 class="sidelines text-center">
+				<span>作业评分</span>
+			</h3>
+			<div class="row">
+				<div class="col-md-12 inner-bottom-xs" style="font-size:16px;">
+					<ul class="nav nav-tabs tab-menu">
+						<li class="class active" data-id="fresh">
+							<a href="#fresh" data-toggle="tab">未评</a>
+						</li>
+						<li class="class" data-id="reviewed">
+							<a href="#reviewed" data-toggle="tab">已评</a>
+						</li>
+						<li class="class" data-id="rejected">
+							<a href="#rejected" data-toggle="tab">驳回</a>
+						</li>
+					</ul>
+					<div class="order-select pull-right">
+						<span class="order green">
+							<a href="javascript:void(0);" value="time">最新提交&nbsp;</a><span class="fa fa-long-arrow-down"></span>
+						</span>
+						<span class="order">
+							<a href="javascript:void(0);" value="-time">最早提交&nbsp;</a><span class="fa fa-long-arrow-down"></span>
+						</span>
+						<span class="order">
+							<a href="javascript:void(0);" value="user_id">按学号排序&nbsp;</a><span class="fa fa-long-arrow-down"></span>
+						</span>
+					</div>
+					<div id="tab-content" class="inner-top-xs tab-content">
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-labelledby="modal-edit" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-edit">
+					编辑作业
+				</h4>
+			</div>
+			<div class="modal-body">
+				<h2 align="center">修改作业信息</h2>
+				<div class="text-center">
+					<h4 align="left";>标题</h4>
+					<input type="text" name="subject" maxlength="500" required id="question-subject" class="form-control" placeholder="标题" />
+					<h4 align="left";>问题描述</h4>
+					<textarea name="content" cols="40" rows="10" required id="question-content" class="form-control" placeholder="问题描述"></textarea>
+					<h4 align="left";>截止日期</h4>
+					<input type="text" name="ddl" maxlength="255" required id="question-ddl" class="form-control" placeholder="截至日期" />
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="edit-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-close" tabindex="-1" role="dialog" aria-labelledby="modal-close" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-close">
+					关闭
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>关闭该作业吗？</h2>
+					<p>关闭后，学生将不能继续提交答案，已提交的答案将会保留。</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="close-confirm" class="btn btn-default" data-dismiss="modal" value="{{ question.questionID }}">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-open" tabindex="-1" role="dialog" aria-labelledby="modal-open" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-open">
+					关闭
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>开放该作业吗？</h2>
+					<p>开放后，学生能够继续提交答案，已提交的答案将会保留。</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="open-confirm" class="btn btn-default" data-dismiss="modal" value="{{ question.questionID }}">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="modal-delete" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete">
+					确认删除
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>确认删除该作业？</h2>
+					<p>该作业，连同作业下的已提交答案将被全部删除，确认删除吗？</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="delete-confirm" class="btn btn-red" data-dismiss="modal" value="{{ question.questionID }}">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="modal-delete-success" tabindex="-1" role="dialog" aria-labelledby="modal-delete-success" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete-success">
+					删除成功
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div class="inner-xs text-center">
+					<h2>已删除选择的作业</h2>
+					<p>您选择的作业（连同附件及对应答案）已被删除，关闭消息栏后回到课程管理页</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="final-close-btn" type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+	<script src="{% static 'js/switch_tab.js' %}"></script>
+	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>
+
+	<!-- 排序方式按钮保持与互斥js -->
+	<script>
+		$(".order").click(function(e){
+		$(this).addClass('green').siblings().removeClass('green');
+		});
+	</script>
+
+	<!-- 修改作业及触发模态窗 -->
+	<script>
+	$("#question-edit").click(function(){
+	event.preventDefault();
+	$('#modal-edit').modal('show');
+	$(function autofill(){
+		$('#question-subject').val('{{ question.subject }}');
+		$('#question-content').val('{{ question.content }}');
+		$('#question-ddl').val('{{ question.ddl }}');
+
+	});
+
+	$('#edit-confirm').click(function(){
+		subject = $("#question-subject").val();
+		content = $('#question-content').val();
+		ddl = $('#question-ddl').val();
+		var data = {
+	            'subject': subject,
+	            'content': content,
+	            'ddl': ddl,
+	        };
+		$.ajax({
+		    url: "edit/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    data: data,
+		    success: function(result){  
+				console.log(result);
+		    	if (result['result'] == true ){
+		    		setTimeout(function(){
+		    			$('#modal-edit-success').modal('hide');
+						location.reload(true); 
+		    		}, 1000);
+					$('#modal-edit-success').modal('show');
+					$('.close-btn').click(function(){
+						location.reload(true); 
+					});
+		    	}
+		    	else{
+					console.log(result['result']);
+		    		$('#modal-edit-fail').modal('show');
+					$('.close-btn').click(function(){
+						location.reload(true); 
+					});
+		    	}
+		    }
+		})
+	});
+	});
+	</script>
+
+	<!-- 日历控件 -->
+	<script>
+	$(function() {
+		$( "#question-ddl" ).datepicker({showAnim: "slide"});
+	});
+	</script>
+
+	<!--关闭作业及触发模态窗-->
+	<script>
+	$("#question-close").click(function(){
+			$('#modal-close').modal('show');
+		$("#close-confirm").click(function(){
+		event.preventDefault();
+		$.ajax({
+		    url: "close/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    success: function(result) {   
+				console.log(result);
+				location.reload(true);
+		    }
+		})
+		});
+	});
+	</script>
+
+	<!--开放作业及触发模态窗-->
+	<script>
+	$("#question-open").click(function(){
+			$('#modal-open').modal('show');
+		$("#open-confirm").click(function(){
+		event.preventDefault();
+		$.ajax({
+		    url: "open/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    success: function(result) {   
+				console.log(result);
+				location.reload(true);
+		    }
+		})
+		});
+	});
+	</script>
+
+	<!--删除作业及触发模态窗-->
+	<script>
+	$("#question-delete").click(function(){
+			$('#modal-delete').modal('show');
+		$("#delete-confirm").click(function(){
+		event.preventDefault();
+		$.ajax({
+		    url: "delete/",
+		    type: "POST",
+		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+		    success: function(result) {   
+				console.log(result);
+				$("#modal-delete-success").modal('show');
+				$('.close-btn').click(function(){
+					window.location.href="/dispatch/{{ course.courseID.courseID }}";
+				});
+		    }
+		})
+		});
+
+
+	});
+	</script>
+
+{% endblock javascript %}
+

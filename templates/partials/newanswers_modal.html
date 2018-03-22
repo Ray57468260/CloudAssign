@@ -1,0 +1,9 @@
+
+{% for answer in answers %}
+<li>
+	<a href="/dispatch/student/answer" style="font-weight:bold;">答案题目：{{ answer.subject }}</a>
+	<p style="font-size:16px; margin-bottom:0px;">提交时间：{{ answer.created_at|date:"Y-m-d h:m A" }}</p>
+	<p style="font-size:16px;"> 评分：{{ answer.get_grade_display }}</p>
+</li>
+<br />
+{% endfor %}

@@ -1,0 +1,10 @@
+{% load i18n %}
+
+{{ site.name }}感谢你的注册使用！ 
+为了激活你的账号，请点击下面的链接：
+
+{{ protocol }}://{{ site.domain }}{% url 'users_activate' uid token %}
+
+链接将在{{ expiration_days }}天后失效。
+
+若此账号并非由你本人注册使用，请忽略并删除此邮件，我们承诺不会再次打扰你！
