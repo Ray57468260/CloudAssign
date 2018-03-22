@@ -1,7 +1,7 @@
 
 <div class="custom-form" style="font-size: 14px;">
 	<h4 class="sidelines text-center" style="font-weight: normal;">
-		<span><a id="toggle-one-form" href="javascript:void(0)">创建试题表单</a></span>
+		<span><a v-show="show_add" @click="AddShow" href="javascript:void(0)">创建试题表单</a></span>
 	</h4>
 	<form id="one-form" action="one/">
 		{{ form.as_p }}
@@ -38,11 +38,4 @@
 			}
 		})
 	})
-</script>
-
-<!--隐藏表单开关-->
-<script>
-$("#toggle-one-form").click(function(){
-	$("#one-form").toggle('slow');
-});
 </script>

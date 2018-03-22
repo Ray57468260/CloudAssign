@@ -7,7 +7,7 @@
 		font-size: 16px;
 	}	
 </style>
-<div class="row">
+<div id="bank-manage" class="row">
 	<div class="col-md-12 border-left">
 		<section class="text-right">
 			<h1>题库管理</h1>
@@ -18,7 +18,7 @@
 			<div class="row inner-xs">
 				<!--左侧-->
 				<div class="col-md-6 border-right">
-					<div id="add-import" class="col-md-12">
+					<div class="col-md-12">
 						<h3 class="sidelines text-center">
 							<span>新建题库</span>
 						</h3>
@@ -63,7 +63,7 @@
 										</select>
 									</div>
 								</div>
-								<div  v-html="html">
+								<div  v-html="one_form">
 								</div>
 							</form>
 						</div>
@@ -149,7 +149,7 @@
 								<option value="{{ course.courseID }}">{{ course.course }}</option>
 								{% endfor %}
 							</select>
-							<buitton id="export-bank-btn" class="btn btn-small" href="javascript:void(0);" style="">导出题库</button>
+							<button id="export-bank-btn" class="btn btn-small" href="javascript:void(0);" style="">导出题库</button>
 						</div>
 						<div id="export-files" class="inner-top-xs col-md-12"></div>
 						<div id="editable"></div>
@@ -177,7 +177,7 @@
 									<option value="{{ course.courseID }}">{{ course.course }}</option>
 									{% endfor %}
 								</select>
-							<buitton id="drop-bank-btn" class="btn btn-red btn-small" href="javascript:void(0);" style=" display:none;">移除整个题库</button>
+							<button id="drop-bank-btn" class="btn btn-red btn-small" href="javascript:void(0);" style=" display:none;">移除整个题库</button>
 							</div>
 					</div>
 				</div>
@@ -187,11 +187,12 @@
 						<p style="font-size: 16px; padding: 5px 5px;">查看&搜索题库</p>
 					</div>
 					<div class="col-md-12" style="margin-top: 10px;">
-						<form action="query" method="POST" id="query" class="form-inline">
+						<form action="query/" method="POST" id="query" class="form-inline">
 							{% csrf_token %}
 							<div class="form-group">
 								<label>课程</label>
-								<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;">
+								<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;" v-model="query_courseID">
+									<option value="">跟随左侧</option>
 									{% for course in courses %}
 									<option value="{{ course.courseID }}">{{ course.course }}</option>
 									{% endfor %}
@@ -199,7 +200,7 @@
 							</div>
 							<div class="form-group" >
 								<label>题型</label>
-								<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;">
+								<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;" v-model="query_e_type">
 									<option value="s-choice">单选题</option>
 									<option value="m-choice">多选题</option>
 									<option value="judge">判断题</option>
@@ -209,13 +210,13 @@
 							</div>
 							<div class="form-group">
 								<label>关键词</label>
-								<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词">
+								<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词" v-model="query_keyword">
 							</div>
-							<button type="submit" id="query-submit" class="btn" style="margin-bottom: 0px;"><span class="fa fa-search fa-lg"></span></button>
+							<button type="submit" id="query-submit" class="btn" style="margin-bottom: 0px;" @click.prevent.stop="query"><span class="fa fa-search fa-lg"></span></button>
 						</form>
 					</div>
 					<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
-						<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;">
+						<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;" v-html="e_candidate">
 						</div>
 					</div>
 				</div>
@@ -276,18 +277,24 @@ jQuery.translate = function(e_type){
 <!--获取单条试题填写表单-->
 <script>
 var vm = new Vue({
-  el: '#add-import',
+  el: '#bank-manage',
   data: {
     courseID: '',
     e_type:'',
-    html : '',
+    one_form : '',
+    e_candidate:'',
 
 	one_show:true,
 	bulk_show:false,
+
+	show_add:true,
+
+	query_e_type:'s-choice',
+	query_keyword:'',
   },
 
   methods:{
-  	//切换功能
+  	//切换单条、批量功能
 	OneShow: function(){
 		this.one_show = true,
 		this.bulk_show = false
@@ -295,6 +302,33 @@ var vm = new Vue({
 	BulkShow: function(){
 		this.one_show = false,
 		this.bulk_show = true
+	},
+
+	AddShow: function(){
+		this.show_add = !this.show_add
+		console.log(this.show_add)
+	},
+
+	//查询题库
+	query: function(evnet){
+		var csrftoken = $.cookie("csrftoken");
+		var url = "{% url 'bank_query_editable' %}";
+		axios({
+			method: 'POST',
+			url: url, 
+  			headers: {'X-CSRFToken': csrftoken},
+			data: {
+		    courseID: this.query_courseID,
+		    e_type: this.query_e_type,
+		    keyword: this.query_keyword,
+			}
+		  })
+		  .then(function (response) {
+		    vm.e_candidate = response.data;
+		  })
+		  .catch(function (error) {
+		    console.log(error);
+		  });
 	}
   },
   watch:{
@@ -303,11 +337,17 @@ var vm = new Vue({
   		var url = 'add/'+e_type+"/";
   		axios.get(url)
 		  .then(function (response) {
-	    	vm.html = response.data;
+		  	console.log(response.data)
+	    	vm.one_form = response.data;
 		  })
 		  .catch(function (error) {
 		    console.log(error);
 		  });
+  	}
+  },
+  computed:{
+  	query_courseID: function(){
+  		return this.courseID
   	}
   }
 })
@@ -355,7 +395,7 @@ $(function() {
 });
 </script>
 
-<!--查询题库-->
+<!--查询题库
 <script>
 $("#query-submit").click(function(){
 	$("#candidate").append("<div class=\"text-center\"><span class=\"fa fa-spinner fa-spin\"></span></div>")
@@ -375,7 +415,7 @@ $("#query-submit").click(function(){
 return false;
 })
 </script>
-
+-->
 <!--修改试题-->
 <script>
 $(document).on("click", ".e-view", function(){

@@ -553,9 +553,11 @@ def bank_query(request, template_name='partials/e_candidate.html'):
             'blank': case5,
         }
 
-        courseID = request.POST['courseID']
-        e_type = request.POST['e_type']
-        keyword = request.POST['keyword']
+        data = request.body.decode('utf-8')
+        json_request = json.loads(data)
+        courseID = json_request['courseID']
+        e_type = json_request['e_type']
+        keyword = json_request['keyword']
         items = switch[e_type](courseID, keyword)
         return render(request, template_name, {'items': items, 'e_type': e_type})
 
