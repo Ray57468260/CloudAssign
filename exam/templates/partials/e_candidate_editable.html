@@ -7,7 +7,7 @@
 	{% for item in items %}
 	<div class="col-md-12 border-bottom" style="padding-top: 5px;">
 		<input type="checkbox" value="{{ item.pk }}" data-type="{{ e_type }}" style="height: 18px; width: 30px;">
-		<a class="e-view" href="javascript:void(0)" style="font-size: 16px;">&#12288;{{ item.descri }}</a>
+		<a class="e-view" href="javascript:void(0)" style="font-size: 16px;" @click="e_see">&#12288;{{ item.descri }}</a>
 	</div>
 {% endfor %}
 </div>

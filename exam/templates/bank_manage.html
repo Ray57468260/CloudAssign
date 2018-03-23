@@ -42,11 +42,11 @@
 								<div class="form-group" style="margin: 0px;">
 									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
 									<div class="col-md-10">
-										<select name="courseID" id="one-courseID" class="form-control" style="width: 180px;" v-model="courseID">
+										<select name="courseID" id="one-courseID" class="form-control" style="width: 180px;" v-model="add_courseID">
 											<option value="">请选择课程</option>
-											{% for course in courses %}
-											<option value="{{ course.courseID }}">{{ course.course }}</option>
-											{% endfor %}
+											{% verbatim %}
+											<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+											{% endverbatim %}
 										</select>
 									</div>
 								</div>
@@ -91,10 +91,11 @@
 								<div class="form-group" style="margin: 0px;">
 									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
 									<div class="col-md-10">
-										<select name="courseID" id="bulk-courseID"class="form-control" style="width: 180px;">
-											{% for course in courses %}
-											<option value="{{ course.courseID }}">{{ course.course }}</option>
-											{% endfor %}
+										<select name="courseID" id="bulk-courseID"class="form-control" style="width: 180px;" v-model="bulk_courseID">
+											<option value="">请选择课程</option>
+											{% verbatim %}
+											<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+											{% endverbatim %}
 										</select>
 									</div>
 								</div>
@@ -144,10 +145,11 @@
 								<span>批量导出题库</span>
 							</h4>
 							<label>选择题库：</label>
-							<select name="courseID" id="export-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;">
-								{% for course in courses %}
-								<option value="{{ course.courseID }}">{{ course.course }}</option>
-								{% endfor %}
+							<select name="courseID" id="export-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;" v-model="export_courseID">
+								<option value="">请选择要导出的题库</option>
+								{% verbatim %}
+								<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+								{% endverbatim %}
 							</select>
 							<button id="export-bank-btn" class="btn btn-small" href="javascript:void(0);" style="">导出题库</button>
 						</div>
@@ -171,11 +173,11 @@
 						</div>
 							<div class="hotizon-label">
 								<label>题库：</label>
-								<select name="courseID" id="drop-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;">
+								<select name="courseID" id="drop-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;" v-model="drop_courseID">
 									<option value="">请选择要移除的题库</option>
-									{% for course in courses %}
-									<option value="{{ course.courseID }}">{{ course.course }}</option>
-									{% endfor %}
+									{% verbatim %}
+									<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+									{% endverbatim %}
 								</select>
 							<button id="drop-bank-btn" class="btn btn-red btn-small" href="javascript:void(0);" style=" display:none;">移除整个题库</button>
 							</div>
@@ -192,10 +194,10 @@
 							<div class="form-group">
 								<label>课程</label>
 								<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;" v-model="query_courseID">
-									<option value="">跟随左侧</option>
-									{% for course in courses %}
-									<option value="{{ course.courseID }}">{{ course.course }}</option>
-									{% endfor %}
+									<option value="">请选择课程</option>
+									{% verbatim %}
+									<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+									{% endverbatim %}
 								</select>
 							</div>
 							<div class="form-group" >
@@ -279,7 +281,17 @@ jQuery.translate = function(e_type){
 var vm = new Vue({
   el: '#bank-manage',
   data: {
-    courseID: '',
+  	courses:[
+  	{% for course in courses %}
+  	{ 'courseID': '{{ course.courseID }}', 'course': '{{ course.course }}' },
+  	{% endfor %}
+  	],
+
+    add_courseID: '',
+    bulk_courseID: '',
+    export_courseID: '',
+    drop_courseID: '',
+
     e_type:'',
     one_form : '',
     e_candidate:'',
@@ -289,6 +301,7 @@ var vm = new Vue({
 
 	show_add:true,
 
+	query_courseID:'',
 	query_e_type:'s-choice',
 	query_keyword:'',
   },
@@ -311,8 +324,8 @@ var vm = new Vue({
 
 	//查询题库
 	query: function(evnet){
-		var csrftoken = $.cookie("csrftoken");
-		var url = "{% url 'bank_query_editable' %}";
+		var csrftoken = $.cookie("csrftoken"),
+			url = "{% url 'bank_query_editable' %}";
 		axios({
 			method: 'POST',
 			url: url, 
@@ -332,7 +345,7 @@ var vm = new Vue({
 	}
   },
   watch:{
-  	//提供单条试题用表单
+  	//提供单条试题创建用表单
   	e_type: function(e_type){
   		var url = 'add/'+e_type+"/";
   		axios.get(url)
@@ -346,9 +359,6 @@ var vm = new Vue({
   	}
   },
   computed:{
-  	query_courseID: function(){
-  		return this.courseID
-  	}
   }
 })
 </script>
@@ -395,27 +405,6 @@ $(function() {
 });
 </script>
 
-<!--查询题库
-<script>
-$("#query-submit").click(function(){
-	$("#candidate").append("<div class=\"text-center\"><span class=\"fa fa-spinner fa-spin\"></span></div>")
-	event.preventDefault();
-	var courseID = $("#id_courseID_id").val();
-	var e_type = $("#id_e_type").val();
-	var keyword = $("#id_keyword").val();
-	var data = {
-		'courseID': courseID,
-		'e_type': e_type,
-		'keyword': keyword,
-	};
-	var csrftoken = $.cookie("csrftoken");
-	var url = "{% url 'bank_query_editable' %}";
-	$("#candidate").load(url, {'csrfmiddlewaretoken': csrftoken,'courseID': courseID, 'e_type': e_type, 'keyword': keyword});
-
-return false;
-})
-</script>
--->
 <!--修改试题-->
 <script>
 $(document).on("click", ".e-view", function(){
