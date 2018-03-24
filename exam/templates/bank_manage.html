@@ -4,7 +4,7 @@
 {% block content %}
 <style>
 	label{
-		font-size: 16px;
+		font-size: 14px;
 	}	
 </style>
 <div id="bank-manage" class="row">
@@ -18,109 +18,8 @@
 			<div class="row inner-xs">
 				<!--左侧-->
 				<div class="col-md-6 border-right">
-					<div class="col-md-12">
-						<h3 class="sidelines text-center">
-							<span>新建题库</span>
-						</h3>
-						<a id="import-one-btn" class="btn btn-small" @click="OneShow">新建单条试题</a>
-						<a id="import-bulk-btn" class="btn btn-small" @click="BulkShow">批量导入试题</a>
-
-						<!--导入单条试题-->
-						<div id="import-one" style="padding: 5px; margin: 20px;" v-show="one_show">
-							<h4 class="sidelines text-center" style="font-weight: normal;">
-								<span>导入单条试题</span>
-							</h4>
-							<div class="inner-bottom-xs">
-								<div style="font-size: 12px;">
-									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
-									<span style="margin:0px">请先选择题型，然后按照提供的表单格式填写；点击表单头可展开/隐藏表单。</span>
-								</div>
-							</div>
-							<form action="one/" method="POST" enctype="multipart/form-data" class="form-horizontal">
-								{% csrf_token %}
-								<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
-								<div class="form-group" style="margin: 0px;">
-									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
-									<div class="col-md-10">
-										<select name="courseID" id="one-courseID" class="form-control" style="width: 180px;" v-model="add_courseID">
-											<option value="">请选择课程</option>
-											{% verbatim %}
-											<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
-											{% endverbatim %}
-										</select>
-									</div>
-								</div>
-								<div class="form-group" style="margin: 0px;">
-									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
-									<div class="col-md-10">
-										<select name="e_type" id="inpute_type_one" class="form-control" style="width: 180px;" v-model="e_type">
-											<option value="">请选择题型</option>
-											<option value="s-choice">单选题</option>
-											<option value="m-choice">多选题</option>
-											<option value="judge">判断题</option>
-											<option value="s-answer">简答题</option>
-											<option value="blank">填空题</option>
-										</select>
-									</div>
-								</div>
-								<div  v-html="one_form">
-								</div>
-							</form>
-						</div>
-						<!--批量导入试题-->
-						<div id="import-bulk" style="padding: 5px; margin: 20px;" v-show="bulk_show">
-							<h4 class="sidelines text-center" style="font-weight: normal;">
-								<span>批量导入试题</span>
-							</h4>
-							<div class="inner-bottom-xs">
-								<div style="font-size: 12px;">
-									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
-									<span style="margin:0px">使用EXCEL作为模板文件(仅支持.xls格式)，请注意按照格式要求，并且文件编码必须为UTF8</span>
-								</div>
-								<div style="font-size: 12px;">
-									<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
-									<span style=" margin:0px">请下载模板，并按照格式要求填写。填写完成后，上传文件即可完成导入。
-									您也可以使用我们提供的标准化转换服务，详情请转到"定制工具"界面。</span>
-									<br />
-									<a href="/media/EXCEL题库模板.rar" style="color: green">下载EXCEL模板</a>
-								</div>
-							</div>
-							<form id="bulk-form" action="bulk/" method="POST" enctype="multipart/form-data" class="form-horizontal">
-								{% csrf_token %}
-								<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
-								<div class="form-group" style="margin: 0px;">
-									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
-									<div class="col-md-10">
-										<select name="courseID" id="bulk-courseID"class="form-control" style="width: 180px;" v-model="bulk_courseID">
-											<option value="">请选择课程</option>
-											{% verbatim %}
-											<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
-											{% endverbatim %}
-										</select>
-									</div>
-								</div>
-								<div class="form-group" style="margin: 0px;">
-									<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
-									<div class="col-md-10">
-										<select name="e_type" id="inpute_type"class="form-control" style="width: 180px;">
-											<option value="s-choice">单选题</option>
-											<option value="m-choice">多选题</option>
-											<option value="judge">判断题</option>
-											<option value="s-answer">简答题</option>
-											<option value="blank">填空题</option>
-										</select>
-									</div>
-								</div>
-						        <div class="form-group" style="margin: 0px;">
-						        	<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">上传文件</label>
-									<div class="col-md-10">
-						        		<input id="id_file" type="file" name="file" />
-						        	</div>
-						        </div>
-					        	<button id="btn-import-bulk" class="btn btn-small btn-block btn-navy" type="submit">上传</button>
-							</form>
-						</div>
-					</div>
+					<add-import :courses="courses"></add-import>
+					
 					<!--编辑题库-->
 					<div class="col-md-12 inner-bottom-xs">
 						<h3 class="sidelines text-center">
@@ -257,6 +156,126 @@
 		</div><!-- /.modal-content -->
 	</div><!-- /.modal -->
 </div>
+
+<template id="add-import">
+	<div class="col-md-12">
+		<h3 class="sidelines text-center">
+			<span>新建题库</span>
+		</h3>
+		<a id="import-one-btn" class="btn btn-small" @click="OneShow">新建单条试题</a>
+		<a id="import-bulk-btn" class="btn btn-small" @click="BulkShow">批量导入试题</a>
+		<!--导入单条试题-->
+		<div id="import-one" style="padding: 5px; margin: 20px;" v-show="one_show">
+			<h4 class="sidelines text-center" style="font-weight: normal;">
+				<span>导入单条试题</span>
+			</h4>
+			<div class="inner-bottom-xs">
+				<div style="font-size: 12px;">
+					<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+					<span style="margin:0px">请先选择题型，然后按照提供的表单格式填写；点击表单头可展开/隐藏表单。</span>
+				</div>
+			</div>
+			<div class="form-horizontal">
+				<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
+				<div class="form-group" style="margin: 0px;">
+					<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
+					<div class="col-md-10">
+						<select name="courseID" id="one-courseID" class="form-control" style="width: 180px;" v-model="one_courseID">
+							<option value="">请选择课程</option>
+							{% verbatim %}
+							<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+							{% endverbatim %}
+						</select>
+					</div>
+				</div>
+				<div class="form-group" style="margin: 0px;">
+					<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
+					<div class="col-md-10">
+						<select name="e_type" id="one-e-type" class="form-control" style="width: 180px;" v-model="one_e_type">
+							<option value="">请选择题型</option>
+							<option value="s-choice">单选题</option>
+							<option value="m-choice">多选题</option>
+							<option value="judge">判断题</option>
+							<option value="s-answer">简答题</option>
+							<option value="blank">填空题</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div style="font-size: 14px;">
+					<h4 class="sidelines text-center" style="font-weight: normal;">
+						<span><a href="javascript:void(0)" @click="FormShow">创建试题表单</a></span>
+					</h4>
+					<div v-show="form_show">
+						<form id="one_form" v-html="one_form">
+						</form>
+						<button class="btn btn-small btn-navy btn-block" @click.prevent="OneUpload">上传</button>
+		    		</div>
+				</div>
+			</div>
+		</div>
+		<!--批量导入试题-->
+		<div id="import-bulk" style="padding: 5px; margin: 20px;" v-show="bulk_show">
+			<h4 class="sidelines text-center" style="font-weight: normal;">
+				<span>批量导入试题</span>
+			</h4>
+			<div class="inner-bottom-xs">
+				<div style="font-size: 12px;">
+					<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+					<span style="margin:0px">使用EXCEL作为模板文件(仅支持.xls格式)，请注意按照格式要求，并且文件编码必须为UTF8</span>
+				</div>
+				<div style="font-size: 12px;">
+					<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+					<span style=" margin:0px">请下载模板，并按照格式要求填写。填写完成后，上传文件即可完成导入。
+					您也可以使用我们提供的标准化转换服务，详情请转到"定制工具"界面。</span>
+					<br />
+					<a href="/media/EXCEL题库模板.rar" style="color: green">下载EXCEL模板</a>
+				</div>
+			</div>
+			<form method="post" enctype="multipart/form-data" id="bulk-form" class="form-horizontal">
+				{% csrf_token %}
+				<input type="hidden" name="user_id" value="{{ request.user.user_id }}">
+				<div class="form-group" style="margin: 0px;">
+					<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所属课程</label>
+					<div class="col-md-10">
+						<select name="courseID" id="bulk-courseID"class="form-control" style="width: 180px;" v-model="bulk_courseID">
+							<option value="">请选择课程</option>
+							{% verbatim %}
+							<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+							{% endverbatim %}
+						</select>
+					</div>
+				</div>
+				<div class="form-group" style="margin: 0px;">
+					<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">所选题型</label>
+					<div class="col-md-10">
+						<select name="e_type" id="inpute_type" class="form-control" style="width: 180px;" 
+						v-model="bulk_e_type">
+							<option value="s-choice">单选题</option>
+							<option value="m-choice">多选题</option>
+							<option value="judge">判断题</option>
+							<option value="s-answer">简答题</option>
+							<option value="blank">填空题</option>
+						</select>
+					</div>
+				</div>
+		        <div class="form-group" style="margin: 0px;">
+		        	<label class="col-md-2 control-label" style="font-size: 14px; padding:0px;">上传文件</label>
+					<div class="col-md-10">
+		        		<input id="file" type="file" name="file" @change="getFile($event)" />
+		        	</div>
+		        </div>
+			</form>
+			<div class="text-center" style="margin-top: 10px;" v-show="processing_show">
+				<span class="fa fa-spinner fa-spin"></span>
+				<span>&nbsp;&nbsp;正在处理上传的题库...</span>
+			</div>
+    		<button class="btn btn-small btn-block btn-navy" @click="BulkUpload">上传</button>
+		</div>
+	</div>
+</template>
+
 {% endblock content %}
 
 {% block javascript %}
@@ -278,6 +297,107 @@ jQuery.translate = function(e_type){
 
 <!--获取单条试题填写表单-->
 <script>
+Vue.component('add-import', {
+	template: '#add-import',
+	data: function(){
+		return{
+			 user_id: '{{ request.user.user_id }}',
+			one_courseID:'',
+			bulk_courseID:'',
+		    one_e_type:'',
+		    bulk_e_type: 's-choice', 
+		    one_form : '',
+		    file: '',
+			one_show: true,
+			bulk_show: false,
+			form_show: true,
+			processing_show: false,
+		}
+	},
+	props: ['courses',],
+	methods:{
+	  	//切换单条、批量功能
+		OneShow: function(){
+			this.one_show = true,
+			this.bulk_show = false
+		},
+		BulkShow: function(){
+			this.one_show = false,
+			this.bulk_show = true
+		},
+		FormShow: function(){
+			this.form_show = !this.form_show
+		},
+		OneUpload: function(){
+			let csrftoken = $.cookie("csrftoken");
+	  		let form = $("#one-form").serialize();
+			axios({
+				method: 'POST',
+				url: 'add/'+this.one_e_type+"/",
+	  			headers: {'X-CSRFToken': csrftoken},
+				data: {
+					form
+				}
+			  })
+			.then(function(response){
+				console.log(response)
+			})
+		    .catch(function (error) {
+		    	console.log(error)
+		    });
+		},
+		getFile(event){
+			this.file = event.target.files[0];
+			console.log(this.file);
+		},
+		BulkUpload: function(){
+			this.processing_show = true;
+			let csrftoken = $.cookie("csrftoken");
+			let formData = new FormData();
+			formData.append('user_id', this.user_id)
+			formData.append('courseID', this.bulk_courseID);
+			formData.append('e_type', this.bulk_e_type);
+			formData.append('file', this.file);
+			axios({
+				method: 'POST',
+				url: "bulk/",
+	  			headers: {'X-CSRFToken': csrftoken, 'Content-Type': 'multipart/form-data'},
+				data: formData
+			  })
+			.then(function(response){
+				console.log(response)
+				this.processing_show = false
+		    	if (response.data['result'] == 'Do not match'){
+		    		alert("提交题型与所选题型不一致！")
+		    	}else if(response.data['result'] == 'Do not support'){
+		    		alert("不支持该格式，请检查上传文件！")
+		    	}else if(response.data['result'] == 'not valid form'){
+		    		alert("请选择上传的题库文件！")
+		    	}else{
+				//触发查询按钮
+		    		console.log(response)
+		    	}
+			}.bind(this))
+		    .catch(function (error) {
+		    	console.log(error)
+		    });
+		}
+	},
+
+	watch:{
+	  	//提供单条试题创建用表单
+	  	one_e_type: function(one_e_type){
+	  		let url = 'add/'+one_e_type+"/";
+	  		axios.get(url)
+			  .then(function (response) {
+			  	this.one_form = response.data
+			  }.bind(this))
+			  .catch(function (error) {
+			    console.log(error);
+			  });
+	  	}
+	},
+})
 var vm = new Vue({
   el: '#bank-manage',
   data: {
@@ -287,19 +407,12 @@ var vm = new Vue({
   	{% endfor %}
   	],
 
-    add_courseID: '',
-    bulk_courseID: '',
+
     export_courseID: '',
     drop_courseID: '',
 
-    e_type:'',
-    one_form : '',
     e_candidate:'',
 
-	one_show:true,
-	bulk_show:false,
-
-	show_add:true,
 
 	query_courseID:'',
 	query_e_type:'s-choice',
@@ -307,20 +420,6 @@ var vm = new Vue({
   },
 
   methods:{
-  	//切换单条、批量功能
-	OneShow: function(){
-		this.one_show = true,
-		this.bulk_show = false
-	},
-	BulkShow: function(){
-		this.one_show = false,
-		this.bulk_show = true
-	},
-
-	AddShow: function(){
-		this.show_add = !this.show_add
-		console.log(this.show_add)
-	},
 
 	//查询题库
 	query: function(evnet){
@@ -344,65 +443,39 @@ var vm = new Vue({
 		  });
 	}
   },
-  watch:{
-  	//提供单条试题创建用表单
-  	e_type: function(e_type){
-  		var url = 'add/'+e_type+"/";
-  		axios.get(url)
-		  .then(function (response) {
-		  	console.log(response.data)
-	    	vm.one_form = response.data;
-		  })
-		  .catch(function (error) {
-		    console.log(error);
-		  });
-  	}
-  },
   computed:{
   }
 })
 </script>
 
-
-<!-- 试题批量上传 -->
+<!--one_form表单自动填写-->
 <script>
-function upload(event) {
-event.preventDefault();
-var data = new FormData($('#bulk-form').get(0));
+$("#one-e-type").change(function(){
+	setTimeout(function(){
+		var courseID = $("#one-courseID").val();
+		$("#id_courseID").val(courseID);
+		var e_type = $("#one-e-type").val();
+		if (e_type == 'm-choice'){
+			$("#id_is_single").val(false);
+		}else if (e_type == 's-choice'){
+			$("#id_is_single").val(true);
+		}
+	}, 1000)
+})
+$("#one-courseID").change(function(){
+	var courseID = $("#one-courseID").val();
+	$("#id_courseID").val(courseID);
+})
+</script>
 
-$("#btn-import-bulk").before("<div id=\"bulk-processing\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在处理上传的题库...</span></div>");
-
-$.ajax({
-    url: $(this).attr('action'),
-    type: $(this).attr('method'),
-    data: data,
-    cache: false,
-    processData: false,
-    contentType: false,
-    success: function(result) {
-    	console.log(result);
-    	$("#bulk-processing").remove();
-    	if (result['result'] == 'Do not match'){
-    		alert("提交题型与所选题型不一致！")
-    	}else if(result['result'] == 'Do not support'){
-    		alert("不支持该格式，请检查上传文件！")
-    	}else if(result['result'] == 'not valid form'){
-    		alert("请选择上传的题库文件！")
-    	}else{
-    		var courseID = $("#bulk-courseID").val()
-    			e_type = $("#inpute_type").val();
-			$("#id_courseID_id").val(courseID);
-			$("#id_e_type").val(e_type);
-    		$("#query-submit").trigger("click");
-    	}
-    }
-});
-return false;
-}
-
-$(function() {
-    $('#bulk-form').submit(upload);
-});
+<!--自动填写-->
+<script>
+	var courseID = $("#one-courseID").val();
+	$("#id_courseID").val(courseID);
+	var e_type = $("#inpute_type_one").val();
+	if (e_type == 'm-choice'){
+		$("#id_is_single").attr("checked", false);
+	}
 </script>
 
 <!--修改试题-->
@@ -505,4 +578,5 @@ $("#del-bulk").click(function(){
 		});
 	})
 </script>
+
 {% endblock javascript %}

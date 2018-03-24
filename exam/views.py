@@ -597,7 +597,7 @@ def bank_add(request, e_type):
         }
         form = switch[e_type]()
 
-        return render(request, 'partials/one_form.html', {'form': form})
+        return HttpResponse(str(form))
 
     if request.method == 'POST':
         def case1():
