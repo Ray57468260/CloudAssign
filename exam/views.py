@@ -334,16 +334,17 @@ def exam_retrieve(request):
 
         def case1():
             choices = Choice.objects.filter(id=e_id).values(
-                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer')
+                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'courseID')
             return choices
 
         def case2():
             choices = Choice.objects.filter(id=e_id).values(
-                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer')
+                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'courseID')
             return choices
 
         def case3():
-            judges = Judge.objects.filter(id=e_id).values('descri', 'answer')
+            judges = Judge.objects.filter(id=e_id).values(
+                'descri', 'answer', 'courseID')
             return judges
 
         def case4():
@@ -353,7 +354,7 @@ def exam_retrieve(request):
 
         def case5():
             blanks = Blank.objects.filter(id=e_id).values(
-                'descri', 'blank1', 'blank2', 'blank3', 'blank4', 'blank5')
+                'descri', 'blank1', 'blank2', 'blank3', 'blank4', 'blank5', 'courseID')
             return blanks
 
         switch = {
@@ -367,10 +368,8 @@ def exam_retrieve(request):
         e_type = request.GET['e_type']
         e_id = request.GET['id']
         querysetsV = switch[e_type]()
-        print(querysetsV)
-        result = json.dumps(list(querysetsV))
-        print(result)
-        return JsonResponse(result, safe=False)
+        item = list(querysetsV)
+        return JsonResponse(item, safe=False)
 
 
 class bank_manage(Auth, LoginRequiredMixin, View):
@@ -516,33 +515,33 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
 
 
 @is_teacher
-def bank_query(request, template_name='partials/e_candidate.html'):
+def bank_query(request):
 
     if request.method == 'POST':
 
         def case1(courseID, keyword):
             choices = Choice.objects.filter(
-                courseID=courseID, descri__icontains=keyword, is_single=True)
+                courseID=courseID, descri__icontains=keyword, is_single=True).values('id', 'descri')
             return choices
 
         def case2(courseID, keyword):
             choices = Choice.objects.filter(
-                courseID=courseID, descri__icontains=keyword, is_single=False)
+                courseID=courseID, descri__icontains=keyword, is_single=False).values('id', 'descri')
             return choices
 
         def case3(courseID, keyword):
             judges = Judge.objects.filter(
-                courseID=courseID, descri__icontains=keyword)
+                courseID=courseID, descri__icontains=keyword).values('id', 'descri')
             return judges
 
         def case4(courseID, keyword):
             s_answers = S_answer.objects.filter(
-                courseID=courseID, descri__icontains=keyword)
+                courseID=courseID, descri__icontains=keyword).values('id', 'descri')
             return s_answers
 
         def case5(courseID, keyword):
             blanks = Blank.objects.filter(
-                courseID=courseID, descri__icontains=keyword)
+                courseID=courseID, descri__icontains=keyword).values('id', 'descri')
             return blanks
 
         switch = {
@@ -559,7 +558,8 @@ def bank_query(request, template_name='partials/e_candidate.html'):
         e_type = json_request['e_type']
         keyword = json_request['keyword']
         items = switch[e_type](courseID, keyword)
-        return render(request, template_name, {'items': items, 'e_type': e_type})
+        result = list(items)
+        return JsonResponse(result, safe=False)
 
 
 @is_teacher
@@ -638,35 +638,30 @@ def bank_add(request, e_type):
 
 
 @is_teacher
-def bank_edit(request, e_type, e_id):
+def bank_edit(request):
     """
     编辑单条试题
     """
     if request.method == 'GET':
-        def case1(e_id):
+        def case1():
             form = ChoiceForm()
-            queryset = Choice.objects.get(id=e_id)
-            return form, queryset
+            return form
 
-        def case2(e_id):
+        def case2():
             form = ChoiceForm()
-            queryset = Choice.objects.get(id=e_id)
-            return form, queryset
+            return form
 
-        def case3(e_id):
+        def case3():
             form = JudgeForm()
-            queryset = Judge.objects.get(id=e_id)
-            return form, queryset
+            return form
 
-        def case4(e_id):
+        def case4():
             form = S_answerForm()
-            queryset = S_answer.objects.get(id=e_id)
-            return form, queryset
+            return form
 
-        def case5(e_id):
+        def case5():
             form = BlankForm()
-            queryset = Blank.objects.get(id=e_id)
-            return form, queryset
+            return form
 
         switch = {
             's-choice': case1,
@@ -675,8 +670,10 @@ def bank_edit(request, e_type, e_id):
             's-answer': case4,
             'blank': case5,
         }
-        form, queryset = switch[e_type](e_id)
-        return render(request, 'partials/one_form_edit.html', {'form': form, 'queryset': queryset})
+        e_type = request.GET['e_type']
+        form = switch[e_type]()
+
+        return HttpResponse(str(form))
 
     if request.method == 'POST':
 
@@ -772,6 +769,9 @@ def bank_edit(request, e_type, e_id):
             's-answer': case4,
             'blank': case5,
         }
+        print(request.POST)
+        e_type = request.POST['e_type']
+        e_id = request.POST['id']
         result = switch[e_type](e_id)
         return JsonResponse(result)
 

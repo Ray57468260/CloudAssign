@@ -20,41 +20,7 @@
 				<div class="col-md-6 border-right">
 					<add-import :courses="courses"></add-import>
 					
-					<!--编辑题库-->
-					<div class="col-md-12 inner-bottom-xs">
-						<h3 class="sidelines text-center">
-							<span>编辑题库</span>
-						</h3>
-						<div class="">
-							<div style="font-size: 12px;">
-								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
-								<span style="margin:0px">从题库中选择任意试题，点击即可编辑试题内容；点击表单头可展开/隐藏表单。</span>
-							</div>
-							<div style="font-size: 12px;">
-								<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
-								<span style=" margin:0px">批量删除试题：先从右侧题库中选中需要删除的试题，然后点击下方的"批量删除试题"按钮即可批量删除。</span>
-								<br />
-							</div>
-						</div>
-						<div class="text-center">
-							<a id="del-bulk" class="btn btn-red btn-small" href="javascript:void(0);">批量删除试题</a>
-						</div>
-						<div class="hotizon-label text-center">
-							<h4 class="sidelines text-center" style="font-weight: normal;">
-								<span>批量导出题库</span>
-							</h4>
-							<label>选择题库：</label>
-							<select name="courseID" id="export-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;" v-model="export_courseID">
-								<option value="">请选择要导出的题库</option>
-								{% verbatim %}
-								<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
-								{% endverbatim %}
-							</select>
-							<button id="export-bank-btn" class="btn btn-small" href="javascript:void(0);" style="">导出题库</button>
-						</div>
-						<div id="export-files" class="inner-top-xs col-md-12"></div>
-						<div id="editable"></div>
-					</div>
+					<edit :courses="courses"></edit>
 					<!--移除题库-->
 					<div class="col-md-12">
 						<h3 class="sidelines text-center">
@@ -83,44 +49,8 @@
 					</div>
 				</div>
 				<!--右侧-->
-				<div class="col-md-6">
-					<div class="col-md-12 text-left" style="background-color: #f5f5f5;">
-						<p style="font-size: 16px; padding: 5px 5px;">查看&搜索题库</p>
-					</div>
-					<div class="col-md-12" style="margin-top: 10px;">
-						<form action="query/" method="POST" id="query" class="form-inline">
-							{% csrf_token %}
-							<div class="form-group">
-								<label>课程</label>
-								<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;" v-model="query_courseID">
-									<option value="">请选择课程</option>
-									{% verbatim %}
-									<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
-									{% endverbatim %}
-								</select>
-							</div>
-							<div class="form-group" >
-								<label>题型</label>
-								<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;" v-model="query_e_type">
-									<option value="s-choice">单选题</option>
-									<option value="m-choice">多选题</option>
-									<option value="judge">判断题</option>
-									<option value="s-answer">简答/计算题</option>
-									<option value="blank">填空题</option>
-								</select>
-							</div>
-							<div class="form-group">
-								<label>关键词</label>
-								<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词" v-model="query_keyword">
-							</div>
-							<button type="submit" id="query-submit" class="btn" style="margin-bottom: 0px;" @click.prevent.stop="query"><span class="fa fa-search fa-lg"></span></button>
-						</form>
-					</div>
-					<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
-						<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;" v-html="e_candidate">
-						</div>
-					</div>
-				</div>
+				<e-candidata :courses="courses"></e-candidata>
+				
 			</div>
 		</section>
 	</div>
@@ -208,7 +138,7 @@
 						<span><a href="javascript:void(0)" @click="FormShow">创建试题表单</a></span>
 					</h4>
 					<div v-show="form_show">
-						<form id="one_form" v-html="one_form">
+						<form v-html="one_form">
 						</form>
 						<button class="btn btn-small btn-navy btn-block" @click.prevent="OneUpload">上传</button>
 		    		</div>
@@ -276,6 +206,110 @@
 	</div>
 </template>
 
+<template id="edit">
+<!--编辑题库-->
+	<div class="col-md-12 inner-bottom-xs">
+		<h3 class="sidelines text-center">
+			<span>编辑题库</span>
+		</h3>
+		<div>
+			<div style="font-size: 12px;">
+				<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+				<span style="margin:0px">从题库中选择任意试题，点击即可编辑试题内容；点击表单头可展开/隐藏表单。</span>
+			</div>
+			<div style="font-size: 12px;">
+				<span class="fa fa-caret-right">&nbsp;&nbsp;</span>
+				<span style=" margin:0px">批量删除试题：先从右侧题库中选中需要删除的试题，然后点击下方的"批量删除试题"按钮即可批量删除。</span>
+				<br />
+			</div>
+		</div>
+		<div class="text-center">
+			<a id="del-bulk" class="btn btn-red btn-small" href="javascript:void(0);">批量删除试题</a>
+		</div>
+		<div class="hotizon-label text-center">
+			<h4 class="sidelines text-center" style="font-weight: normal;">
+				<span>批量导出题库</span>
+			</h4>
+			<label>选择题库：</label>
+			<select name="courseID" id="export-courseID" style="height: 30px; width: 180px; margin-bottom: 0px;" v-model="export_courseID">
+				<option value="">请选择要导出的题库</option>
+				{% verbatim %}
+				<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+				{% endverbatim %}
+			</select>
+			<button class="btn btn-small" href="javascript:void(0);" >导出题库</button>
+		</div>
+		<div id="export-files" class="inner-top-xs col-md-12"></div>
+		<div id="editable">
+			<div style="font-size: 14px;">
+				<h4 class="sidelines text-center" style="font-weight: normal;">
+					<span><a href="javascript:void(0)" @click="EditableFormShow">编辑试题表单</a></span>
+				</h4>
+				<div v-show="editable_form_show">
+					<form id="editable-form" v-html="editable_form">
+						{{ form.as_p }}
+					</form>
+			    	<button class="btn btn-small btn-block btn-navy" @click="EditUpload">上传</button>
+			    </div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="e-candidata">
+<!--查询题库-->
+	<div class="col-md-6">
+		<div class="col-md-12 text-left" style="background-color: #f5f5f5;">
+			<p style="font-size: 16px; padding: 5px 5px;">查看&搜索题库</p>
+		</div>
+		<div class="col-md-12" style="margin-top: 10px;">
+			<form action="query/" method="POST" id="query" class="form-inline">
+				{% csrf_token %}
+				<div class="form-group">
+					<label>课程</label>
+					<select name="courseID" id="id_courseID_id"class="form-control" style="width: 120px; margin-bottom: 0px;" v-model="query_courseID">
+						<option value="">请选择课程</option>
+						{% verbatim %}
+						<option v-for="course in courses" :value="course.courseID">{{ course.course }}</option>
+						{% endverbatim %}
+					</select>
+				</div>
+				<div class="form-group" >
+					<label>题型</label>
+					<select name="e_type" id="id_e_type" class="form-control" style="height: 38px; width: 100px; margin-bottom: 0px;" v-model="query_e_type">
+						<option value="s-choice">单选题</option>
+						<option value="m-choice">多选题</option>
+						<option value="judge">判断题</option>
+						<option value="s-answer">简答/计算题</option>
+						<option value="blank">填空题</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>关键词</label>
+					<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词" v-model="query_keyword">
+				</div>
+				<button type="submit" class="btn" style="margin-bottom: 0px;" @click.prevent.stop="query"><span class="fa fa-search fa-lg"></span></button>
+			</form>
+		</div>
+		<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
+			<div id="candidate" class="border" style="height: 500px; overflow-y: scroll;">
+				<div class="col-md-12 border-bottom" style="padding-top: 5px;">
+					<input id="check-all" type="checkbox" style="height: 18px; width: 30px;">
+					<span style="font-size:16px; height: 18px; width: 30px; margin-left: 15px; margin-bottom: 5px;">全选</span>
+				</div>
+				<div>
+					<div class="col-md-12 border-bottom" style="padding-top: 5px;" v-for="(candidate, index) in candidate_list">
+						{% verbatim %}
+						<input type="checkbox" :value="candidate.id" :data-type="query_e_type" style="height: 18px; width: 30px;">
+						<a @click="OneEdit" href="javascript:void(0)" style="font-size: 16px;" :data-id="index">{{ candidate.descri }}</a>
+						{% endverbatim %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
 {% endblock content %}
 
 {% block javascript %}
@@ -295,13 +329,14 @@ jQuery.translate = function(e_type){
 };
 </script>
 
-<!--获取单条试题填写表单-->
 <script>
+var bus = new Vue()
+//——————————————————————————————————————————————————————————————————————————————————添加试题组件
 Vue.component('add-import', {
 	template: '#add-import',
 	data: function(){
 		return{
-			 user_id: '{{ request.user.user_id }}',
+			user_id: '{{ request.user.user_id }}',
 			one_courseID:'',
 			bulk_courseID:'',
 		    one_e_type:'',
@@ -310,38 +345,41 @@ Vue.component('add-import', {
 		    file: '',
 			one_show: true,
 			bulk_show: false,
-			form_show: true,
+			form_show: false,
 			processing_show: false,
 		}
 	},
 	props: ['courses',],
 	methods:{
-	  	//切换单条、批量功能
+	  	//切换单条、批量功能(1)
 		OneShow: function(){
 			this.one_show = true,
 			this.bulk_show = false
 		},
+		//切换单条、批量功能(2)
 		BulkShow: function(){
 			this.one_show = false,
 			this.bulk_show = true
 		},
+		//显示/隐藏创建表单
 		FormShow: function(){
 			this.form_show = !this.form_show
 		},
+		//上传单条试题创建表单
 		OneUpload: function(){
 			let csrftoken = $.cookie("csrftoken");
-	  		let form = $("#one-form").serialize();
+	  		let form = $("#one-form")[0];
+	  		let formData = new FormData(form)
 			axios({
 				method: 'POST',
 				url: 'add/'+this.one_e_type+"/",
 	  			headers: {'X-CSRFToken': csrftoken},
-				data: {
-					form
-				}
+				data: formData,
 			  })
 			.then(function(response){
 				console.log(response)
-			})
+	    		bus.$emit('query', this.one_courseID, this.one_e_type)
+			}.bind(this))
 		    .catch(function (error) {
 		    	console.log(error)
 		    });
@@ -350,6 +388,7 @@ Vue.component('add-import', {
 			this.file = event.target.files[0];
 			console.log(this.file);
 		},
+		//上传试题批量导入文件
 		BulkUpload: function(){
 			this.processing_show = true;
 			let csrftoken = $.cookie("csrftoken");
@@ -376,6 +415,7 @@ Vue.component('add-import', {
 		    	}else{
 				//触发查询按钮
 		    		console.log(response)
+		    		bus.$emit('query', (this.bulk_courseID, this.bulk_e_type))
 		    	}
 			}.bind(this))
 		    .catch(function (error) {
@@ -391,6 +431,14 @@ Vue.component('add-import', {
 	  		axios.get(url)
 			  .then(function (response) {
 			  	this.one_form = response.data
+			  	this.form_show = true
+				var courseID = $("#one-courseID").val();
+				$("#id_courseID").val(this.one_courseID);//this.one_courseID是双向绑定，不需要另外设置监听
+				if (one_e_type == 'm-choice'){
+					$("#id_is_single").val(false);
+				}else if (one_e_type == 's-choice'){
+					$("#id_is_single").val(true);
+				}
 			  }.bind(this))
 			  .catch(function (error) {
 			    console.log(error);
@@ -398,6 +446,145 @@ Vue.component('add-import', {
 	  	}
 	},
 })
+//——————————————————————————————————————————————————————————————————————————————————题库编辑组件
+Vue.component('edit', {
+	template: '#edit',
+	data: function(){
+		return{
+			editing_e_type: '',
+			editing_id: '',
+			editable_form: '',
+			editable_form_show: false,
+    		export_courseID: '',
+
+		}
+	},
+	props: ['courses',],
+	created(){
+		bus.$on('editable_form', function(editable_form, e_type, e_profile){
+			this.editable_form = editable_form
+			this.Retrieve(e_type, e_profile.id)
+			this.editable_form_show = true
+		}.bind(this))
+	},
+	methods: {
+		//编辑时读取试题信息
+		Retrieve: function(e_type, id){
+			this.editing_e_type = e_type
+			this.editing_id = id
+			let url = "{% url 'exam_retrieve' %}";
+			axios({
+			  method: 'get',
+			  url: url,
+			  params: {
+			    'e_type': e_type,
+			    'id': id
+			  },
+			})
+			.then(function (response) {
+				$.each(response.data[0], function(key, item){
+					$("#editable #id_"+key).val(item);
+				})
+				if (e_type == 'm-choice'){
+					$("#id_is_single").val(false);
+				}else if (e_type == 's-choice'){
+					$("#id_is_single").val(true);
+				}
+			})
+		    .catch(function (error) {
+		    	console.log(error);
+		    });
+		},
+		//显示/隐藏编辑表单
+		EditableFormShow: function(){
+			this.editable_form_show = !this.editable_form_show
+		},
+		//上传编辑后的表单
+		EditUpload: function(){
+			let csrftoken = $.cookie("csrftoken");
+	  		let form = $("#editable-form")[0];
+			let formData = new FormData(form);
+			formData.append('e_type', this.editing_e_type);
+			formData.append('id', this.editing_id);
+			axios({
+				method: 'POST',
+				url: "{% url 'bank_edit' %}",
+	  			headers: {'X-CSRFToken': csrftoken},
+				data: formData,
+			  })
+			.then(function(response){
+				console.log(response)
+			})
+		    .catch(function (error) {
+		    	console.log(error);
+		    });
+		}
+	}
+})
+
+//——————————————————————————————————————————————————————————————————————————————————题库查询组件
+Vue.component('e-candidata', {
+	template: '#e-candidata',
+	data: function(){
+		return{
+			candidate_list: '',
+			query_courseID:'',
+			query_e_type:'s-choice',
+			query_keyword:'',
+		}
+	},
+	props: ['courses',],
+	created(){
+		bus.$on('query', function(courseID, e_type) {
+			this.query_courseID = courseID,
+			this.query_e_type = e_type
+			this.query_keyword = ''
+			this.query()
+		}.bind(this))
+	},
+	methods: {
+		//查询题库
+		query: function(evnet){
+			let csrftoken = $.cookie("csrftoken");
+			var url = "{% url 'bank_query_editable' %}";
+			axios({
+				method: 'POST',
+				url: url, 
+	  			headers: {'X-CSRFToken': csrftoken},
+				data: {
+			    courseID: this.query_courseID,
+			    e_type: this.query_e_type,
+			    keyword: this.query_keyword,
+				}
+			  })
+			  .then(function (response) {
+			  	this.candidate_list = response.data
+			  }.bind(this))
+			  .catch(function (error) {
+			    console.log(error);
+			  });
+		},
+		//向试题编辑组件广播通信（广播表单和试题信息）
+		OneEdit: function(evnet){
+	  		let url = "{% url 'bank_edit' %}";
+	  		let e_index = $(evnet.target).data("id")
+	  		axios.get(url, {
+	  			params: {
+	  				'e_type': this.query_e_type,
+	  			}
+	  		})
+			  .then(function (response) {
+			  	bus.$emit('editable_form', response.data, this.query_e_type, this.candidate_list[e_index])
+			  }.bind(this))
+			  .catch(function (error) {
+			    console.log(error);
+			  });
+
+		}
+	},
+})
+
+
 var vm = new Vue({
   el: '#bank-manage',
   data: {
@@ -408,85 +595,15 @@ var vm = new Vue({
   	],
 
 
-    export_courseID: '',
     drop_courseID: '',
 
-    e_candidate:'',
-
-
-	query_courseID:'',
-	query_e_type:'s-choice',
-	query_keyword:'',
   },
 
   methods:{
 
-	//查询题库
-	query: function(evnet){
-		var csrftoken = $.cookie("csrftoken"),
-			url = "{% url 'bank_query_editable' %}";
-		axios({
-			method: 'POST',
-			url: url, 
-  			headers: {'X-CSRFToken': csrftoken},
-			data: {
-		    courseID: this.query_courseID,
-		    e_type: this.query_e_type,
-		    keyword: this.query_keyword,
-			}
-		  })
-		  .then(function (response) {
-		    vm.e_candidate = response.data;
-		  })
-		  .catch(function (error) {
-		    console.log(error);
-		  });
-	}
   },
   computed:{
   }
-})
-</script>
-
-<!--one_form表单自动填写-->
-<script>
-$("#one-e-type").change(function(){
-	setTimeout(function(){
-		var courseID = $("#one-courseID").val();
-		$("#id_courseID").val(courseID);
-		var e_type = $("#one-e-type").val();
-		if (e_type == 'm-choice'){
-			$("#id_is_single").val(false);
-		}else if (e_type == 's-choice'){
-			$("#id_is_single").val(true);
-		}
-	}, 1000)
-})
-$("#one-courseID").change(function(){
-	var courseID = $("#one-courseID").val();
-	$("#id_courseID").val(courseID);
-})
-</script>
-
-<!--自动填写-->
-<script>
-	var courseID = $("#one-courseID").val();
-	$("#id_courseID").val(courseID);
-	var e_type = $("#inpute_type_one").val();
-	if (e_type == 'm-choice'){
-		$("#id_is_single").attr("checked", false);
-	}
-</script>
-
-<!--修改试题-->
-<script>
-$(document).on("click", ".e-view", function(){
-		e_type_edit = $(this).prev().data("type");
-		e_id_edit = $(this).prev().val();
-		csrftoken = $.cookie("csrftoken");
-	var url = "edit/"+e_type_edit+"/"+e_id_edit+"/";
-	$("#editable").empty();
-	$("#editable").load(url);
 })
 </script>
 
