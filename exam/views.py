@@ -379,7 +379,6 @@ class bank_manage(Auth, LoginRequiredMixin, View):
             teacher=request.user.user_id).values('courseID', 'course')
         return render(request, 'bank_manage.html', {'courses': courses})
 
-    @is_teacher
     def post(delf, request):
         if request.method == 'POST':
 
@@ -416,7 +415,6 @@ class bank_manage(Auth, LoginRequiredMixin, View):
                 's-answer': case4,
                 'blank': case5,
             }
-
             data = request.body.decode('utf-8')
             json_request = json.loads(data)
             e_type = json_request['e_type']
@@ -779,7 +777,9 @@ def bank_edit(request):
 @is_teacher
 def bank_drop(request):
     if request.method == 'POST':
-        courseID = request.POST['courseID']
+        data = request.body.decode('utf-8')
+        json_request = json.loads(data)
+        courseID = json_request['courseID']
         try:
             Choice.objects.filter(courseID=courseID).delete()
             Judge.objects.filter(courseID=courseID).delete()
