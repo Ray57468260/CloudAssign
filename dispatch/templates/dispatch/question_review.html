@@ -9,15 +9,16 @@
 	{% include 'includes/sidenav.html' %}
 	<div class="col-md-9 inner-left-md border-left">
 		<section class="row inner-bottom-xs">
-			<nav class="col-md-6 inner-top-xs">
+			<nav class="col-md-3 inner-top-xs">
 				<h3>
 				<a href="{{ request.get_full_path | replace_url:'review,statistics' }}"><span class="fa fa-chevron-left"></span>&#12288;作业统计</a></h3>
 			</nav>
-			<div class="col-md-6">
-				<h1 align="right">作业评分</h1>
+			<div class="col-md-9 text-right">
+				<h2>作业评分</h2>
+			<p style="font-size:14px;">在这里您可以对学生提交的答案进行评分，评分情况将实时反映在学生答题情况统计</p>
 			</div>
 		</section>
-		<section class="border-top-lg inner-bottom-xs">
+		<section id="reviewed" class="border-top-lg inner-bottom-xs">
 			<div class="row">
 				<div class="col-sm-12 inner-right-xs inner-bottom-xs">
 					<div class="text-center inner-top-xs">
@@ -33,13 +34,13 @@
 					<p style="color:#d9534f; font-size:16px;">状态：已关闭</p>
 					{% endif %}
 					<div>
-					<button id="question-edit" class="btn btn-lg" value="{{ question.questionID }}" style="background:#428bca;"><i class="fa fa-cog fa-lg"></i>&nbsp;编&nbsp;辑&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-edit" class="btn btn-blue bten-small" value="{{ question.questionID }}"><i class="fa fa-cog fa-lg"></i>&nbsp;编&nbsp;辑&nbsp;该&nbsp;作&nbsp;业</button>
 					{% if question.status %}
-					<button id="question-close" class="btn btn-danger" value="{{ question.questionID }}"><i class="fa fa-close fa-lg"></i>&nbsp;关&nbsp;闭&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-close" class="btn bten-small" value="{{ question.questionID }}"><i class="fa fa-close fa-lg"></i>&nbsp;关&nbsp;闭&nbsp;该&nbsp;作&nbsp;业</button>
 					{% else %}
-					<button id="question-open" class="btn btn-danger" value="{{ question.questionID }}"><i class="fa fa-check fa-lg"></i>&nbsp;开&nbsp;放&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-open" class="btn bten-small" value="{{ question.questionID }}"><i class="fa fa-check fa-lg"></i>&nbsp;开&nbsp;放&nbsp;该&nbsp;作&nbsp;业</button>
 					{% endif %}
-					<button id="question-delete" class="btn btn-red" value="{{ question.questionID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-delete" class="btn btn-red bten-small" value="{{ question.questionID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;该&nbsp;作&nbsp;业</button>
 					</div>
 				</div>
 			</div>
@@ -275,7 +276,6 @@
 		    headers: { "X-CSRFToken": $.cookie("csrftoken") },
 		    data: data,
 		    success: function(result){  
-				console.log(result);
 		    	if (result['result'] == true ){
 		    		setTimeout(function(){
 		    			$('#modal-edit-success').modal('hide');
@@ -287,7 +287,6 @@
 					});
 		    	}
 		    	else{
-					console.log(result['result']);
 		    		$('#modal-edit-fail').modal('show');
 					$('.close-btn').click(function(){
 						location.reload(true); 

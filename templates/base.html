@@ -7,9 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}CloudAssign —— say goodbye to paper mounds{% endblock %}</title>
 
-    <script src="{% static 'js/vue.js' %}"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-
     <link href="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'Font-Awesome-4.7.0/css/font-awesome.min.css' %}" rel="stylesheet">
@@ -37,9 +34,11 @@
     {% include 'includes/header.html' %}
   <!-- ============================================================= MAIN ============================================================= -->
 <main>
-    <div class="container inner-top-xs">
-      {% block content %}
-      {% endblock %}
+    <div class="container">
+        <div class="inner-left-md inner-right-md inner-top-xs">
+          {% block content %}
+          {% endblock %}
+        </div>
     </div>
 <br />
 </main>

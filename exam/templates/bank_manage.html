@@ -10,7 +10,7 @@
 <div id="bank-manage" class="row">
 	<div class="col-md-12 border-left">
 		<section class="text-right">
-			<h1>题库管理</h1>
+			<h2>题库管理</h2>
 			<p style="font-size:14px;">您可以在此管理您的题库，包括创建、添加、删除和导出</p>
 			<br />
 		</section>
@@ -21,8 +21,9 @@
 					<add-import :courses="courses"></add-import>
 					
 					<edit :courses="courses"></edit>
-
+<!--
 					<drop :courses="courses"></drop>
+-->
 				</div>
 				<!--右侧-->
 				<e-candidata :courses="courses"></e-candidata>
@@ -288,15 +289,14 @@
 						<option value="s-choice">单选题</option>
 						<option value="m-choice">多选题</option>
 						<option value="judge">判断题</option>
-						<option value="s-answer">简答/计算题</option>
+						<option value="s-answer">简答题</option>
 						<option value="blank">填空题</option>
 					</select>
 				</div>
 				<div class="form-group">
-					<label>关键词</label>
-					<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="关键词" v-model="query_keyword">
+					<input type="text" name="keyword" id="id_keyword" class="form-control" style="width: 100px; margin-bottom: 1px;" placeholder="筛选关键词" v-model="query_keyword">
 				</div>
-				<button type="submit" class="btn" style="margin-bottom: 0px;" @click.prevent.stop="query"><span class="fa fa-search fa-lg"></span></button>
+				<button type="submit" class="btn btn-small" style="margin-bottom: 0px;" @click.prevent.stop="query"><span class="fa fa-search fa-lg"></span></button>
 			</form>
 		</div>
 		<div class="col-md-12" style="margin-top: 10px; padding: 0px;">
@@ -321,6 +321,10 @@
 {% endblock content %}
 
 {% block javascript %}
+<!--引入Vue.js-->
+<script src="{% static 'js/vue.js' %}"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 <script src="{% static 'js/jquery.form.js' %}"></script>
 
 <script>
@@ -586,7 +590,7 @@ Vue.component('edit', {
 })
 
 //——————————————————————————————————————————————————————————————————————————————————题库移除组件
-Vue.component('drop', {
+/*Vue.component('drop', {
 	template: '#drop',
 	data: function(){
 		return{
@@ -631,7 +635,7 @@ Vue.component('drop', {
 		}
 	}
 })
-
+*/
 //——————————————————————————————————————————————————————————————————————————————————题库查询组件
 Vue.component('e-candidata', {
 	template: '#e-candidata',

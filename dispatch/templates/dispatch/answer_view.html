@@ -7,8 +7,9 @@
 <div class="row">
 	{% include 'includes/sidenav.html' %}
 	<div class="col-md-9 inner-left-md border-left">
-		<section class="inner-bottom-xs">
-			<h1 align="right">我的成绩</h1>
+		<section class="inner-bottom-xs text-right">
+			<h2>我的成绩</h2>
+			<p style="font-size:14px;">在这里你可以查询你的历史成绩、最好成绩</p>
 		</section>
 
 		<section class="border-top-lg">
@@ -112,7 +113,6 @@
 	<script>
 	$("#course-select").change(function(){
 		var courseID = $(this).val();
-		console.log(courseID);
 		data = {'courseID': courseID};
 		$.ajax({
 			url:"",
@@ -120,7 +120,6 @@
 			headers: { "X-CSRFToken": $.cookie("csrftoken") },
 			data: data,
 			success:function(result){
-				console.log(result);
 				$("#question-select").empty();
 				$.each(result, function(i, item){
 					$("#question-select").append("<option value="+item.pk+">"+item.fields.subject+"</option>");

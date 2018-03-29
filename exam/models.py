@@ -19,7 +19,7 @@ class BankProcess(models.Model):
 
 class Choice(models.Model):
     courseID = models.ForeignKey(
-        Course, _('courseID'), related_name='Chioce_courseID')
+        Course, related_name='Chioce_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     descri = models.TextField(_('题干'))
     is_single = models.BooleanField(
         _('是否单选'), default=True, help_text='若为多选题，请勿勾选')
@@ -37,7 +37,7 @@ class Choice(models.Model):
 
 class Judge(models.Model):
     courseID = models.ForeignKey(
-        Course, _('courseID'), related_name='Judge_courseID')
+        Course, related_name='Judge_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     descri = models.TextField(_('题干'))
     answer = models.BooleanField(
         _('答案'), blank=True, help_text='勾选表示正确，不勾选表示错误')
@@ -47,7 +47,7 @@ class Judge(models.Model):
 
 class S_answer(models.Model):
     courseID = models.ForeignKey(
-        Course, _('courseID'), related_name='S_answer_courseID')
+        Course, related_name='S_answer_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     descri = models.TextField(_('题干'))
     answer = models.TextField(_('答案'), blank=True)
     point = models.IntegerField(_('分值'), default=0)
@@ -56,7 +56,7 @@ class S_answer(models.Model):
 
 class Blank(models.Model):
     courseID = models.ForeignKey(
-        Course, _('courseID'), related_name='Blank_courseID')
+        Course, related_name='Blank_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     descri = models.TextField(
         _('题干'), help_text='参考形式：我国交通事故报警求救电话号码是__[空1]__，以此类推')
     blank1 = models.CharField(_('空1'), max_length=255, blank=True)
@@ -71,7 +71,7 @@ class Blank(models.Model):
 
 class Exam(models.Model):
     courseID = models.ForeignKey(
-        Course, _('课程'), related_name='Exam_courseID')
+        Course, related_name='Exam_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     title = models.CharField(_('试卷题目'), max_length=64)
     intro = models.CharField(_('备注'), max_length=255, blank=True)
     choices = models.ManyToManyField(
@@ -88,7 +88,7 @@ class Exam(models.Model):
 
 class Draft(models.Model):
     courseID = models.ForeignKey(
-        Course, _('课程'), related_name='Draft_courseID')
+        Course, related_name='Draft_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     title = models.CharField(_('试卷题目'), max_length=64, blank=True)
     intro = models.CharField(_('备注'), max_length=255, blank=True)
     draft_string = models.TextField(_('草稿'))

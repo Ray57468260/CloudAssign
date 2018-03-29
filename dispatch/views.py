@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.db.models import Max, Count
+from django.db.models import Max, Min, Count, Avg
 from guardian.models import UserObjectPermission
 from guardian.decorators import *
 from .forms import AnswerForm, QuestionForm, CourseForm
@@ -304,7 +304,7 @@ class question_statistics(Auth, LoginRequiredMixin, View):
             candidate = []
             question = Question.objects.get(questionID=questionID)
             uploaded = Answer.objects.select_related(
-                'user_id').filter(questionID=questionID, status=False)
+                'user_id').filter(questionID=questionID)
 
             for a in uploaded:
                 candidate.append(a.user_id_id)
@@ -317,18 +317,56 @@ class question_statistics(Auth, LoginRequiredMixin, View):
             reviewed = Answer.objects.select_related('user_id').filter(
                 questionID=questionID, status=False, accepted=True).order_by('-grade')
 
-            grade_sta = reviewed.values('grade')
-
             remained = Answer.objects.select_related(
                 'user_id').filter(questionID=questionID, status=True)
             rejected = Answer.objects.select_related('user_id').filter(
                 questionID=questionID, accepted=False)
             result = {'question': question, 'reviewed': reviewed,
-                      'uploaded': uploaded, 'remained': remained, 'rejected': rejected, 'uploaded_students': uploaded_students, 'undone_students': undone_students, 'grade_sta': grade_sta}
+                      'uploaded': uploaded, 'remained': remained, 'rejected': rejected, 'uploaded_students': uploaded_students, 'undone_students': undone_students}
             return render(request, 'dispatch/question_statistics.html', result)
 
     def post(request, courseID, questionID):
         pass
+
+
+@is_teacher
+def question_statistics_gradedis(request, courseID, questionID):
+    if request.method == 'GET':
+        result = {}
+        grade_map = {
+            'C': 55,
+            'B': 65,
+            'A': 75,
+            'A+': 85,
+            'A++': 95,
+        }  # 请与models.py中Answer类的GRADE_CHOICES同步修改
+        for key in grade_map:
+            count = Answer.objects.filter(questionID=questionID,
+                                          grade=grade_map[key]).aggregate(Count('user_id_id'))
+            result[key] = count
+            """
+        result['avg'] = Answer.objects.filter(
+            questionID=questionID, status=False, accepted=True).aggregate(Avg('grade'))
+        result['max'] = Answer.objects.filter(
+            questionID=questionID, status=False, accepted=True).aggregate(Max('grade'))
+        result['min'] = Answer.objects.filter(
+            questionID=questionID, status=False, accepted=True).aggregate(Min('grade'))
+            """
+    return JsonResponse(result, safe=False)
+
+
+@is_teacher
+def question_statistics_timedis(request, courseID, questionID):
+    if request.method == 'GET':
+        result = {}
+        cache = []
+        timestamp = list(Answer.objects.filter(
+            questionID=questionID).order_by('created_at').values('created_at'))
+        for t in timestamp:
+            date = t['created_at'].strftime('%x')
+            cache.append(date)
+            result[date] = cache.count(date)
+        return JsonResponse(result)
 
 
 class course_create(Auth, LoginRequiredMixin, View):

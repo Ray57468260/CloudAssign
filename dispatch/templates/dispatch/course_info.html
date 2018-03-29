@@ -12,8 +12,9 @@
 <div class="row">
 	{% include 'includes/sidenav.html' %}
 	<div class="col-md-9 inner-left-md border-left">
-		<section class="inner-bottom-xs">
-			<h1 align="right">课程详情</h1>
+		<section class="inner-bottom-xs text-right">
+			<h2>课程详情</h2>
+			<p style="font-size:14px;">在这里您可以了解关于课程的所有详情</p>
 		</section>
 		<section class="border-top-lg">
 			<div class="row"> 
@@ -52,7 +53,7 @@
 					{% if request.user.is_teacher %}
 					<div class="col-md-12">
 						<a href="/dispatch/{{ course.courseID }}/publish/" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;发布新作业</a>
-						<a href="/exam/teacher/{{ course.courseID }}/build/" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;创建新试卷</a>
+						<a href="{% url 'exam_build' %}" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;创建新试卷</a>
 						<a href="/exam/teacher/{{ course.courseID }}/" class="btn btn-lg btn-blue"><i class="fa fa-print"></i>&nbsp;试卷管理</a>
 						<button id="course-edit" class="btn btn-lg btn-blue"><i class="fa fa-cog"></i>&nbsp;编辑课程信息</button>
 					</div>

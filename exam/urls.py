@@ -9,6 +9,8 @@ urlpatterns = [
          exam_auto_generate, name="exam_auto_generate"),
     path(r'teacher/build/',
          exam_build.as_view(), name="exam_build"),
+    path(r'teacher/<int:courseID>/',
+         exam_manage.as_view(), name="exam_manage"),
     path(r'teacher/<int:courseID>/delete/<int:id>/',
          exam_delete, name="exam_delete"),
     path(r'teacher/bank/',

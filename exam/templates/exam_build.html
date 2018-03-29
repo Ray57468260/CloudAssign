@@ -7,13 +7,13 @@
 	p{
 		font-size: 14px;
 		padding: 5px 5px;
-	}
+	}	
 </style>
 
 <div class="row">
 	<div class="col-md-12 border-left">
 		<section class="text-right">
-			<h1>配置试卷</h1>
+			<h2>配置试卷</h2>
 			<p>试卷详情配置，您可以在当前页面创建试卷、选择题型、配置试题，进入下一步后设置试题分值</p>
 			<br />
 		</section>
@@ -27,7 +27,7 @@
 						</h3>
 						<form class="form-horizontal" style="font-size: 16px;">
 							<div class="form-group">
-								<label class="col-md-2 control-label">所属课程</label>
+								<label class="col-md-3 control-label">所属课程</label>
 								<div class="col-md-3 pull-left">
 									<select name="courseID" required id="id_courseID">
 										{% for course in courses %}
@@ -37,14 +37,14 @@
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-md-2 control-label">试卷题目</label>
-								<div class="col-md-10">
+								<label class="col-md-3 control-label">试卷题目</label>
+								<div class="col-md-9">
 									<input type="text" name="title" maxlength="64" required id="id_title" placeholder="试卷题目(必填)" class="form-control">
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-md-2 control-label">备注</label>
-								<div class="col-md-10">
+								<label class="col-md-3 control-label">备注</label>
+								<div class="col-md-9">
 									<textarea name="intro" maxlength="255" id="id_intro" cols="30" rows="2" placeholder="备注(选填)" class="form-control"></textarea>
 									</div>
 							</div>

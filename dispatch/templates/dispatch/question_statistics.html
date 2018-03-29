@@ -4,32 +4,20 @@
 {% load custom_filters %}
 {% block content %}
 {% include 'includes/breadcrumbs.html' %}
-<!-- Styles -->
-<style>
-#barchar {
-	width		: 100%;
-	height		: 300px;
-	font-size	: 14px;
-	font-family: "Microsoft Yahei";
-}#linechart {
-	width	: 100%;
-	height	: 500px;
-}	
-</style>
-
 <div class="row">
 	{% include 'includes/sidenav.html' %}
 	<div class="col-md-9 inner-left-md border-left">
 	<section class="row inner-bottom-xs">
-		<nav class="col-md-6 inner-top-xs">
+		<nav class="col-md-3 inner-top-xs">
 			<h3>
 			<a href="{{ request.get_full_path | replace_url:'statistics,review' }}"><span class="fa fa-chevron-left"></span>&#12288;作业评分</a></h3>
 		</nav>
-		<div class="col-md-6">
-			<h1 align="right">作业统计</h1>
+		<div class="col-md-9 text-right">
+			<h2>作业统计</h2>
+			<p style="font-size:14px;">在这里您可以了解学生的答题情况，包括成绩分布、提交情况</p>
 		</div>
 	</section>
-	<section class="border-top-lg">
+	<section id="statistics" class="border-top-lg">
 		<div class="row">
 			<div class="col-sm-12 inner-right-xs inner-bottom-xs">
 				<div class="inner-top-xs">
@@ -57,7 +45,7 @@
 				<div class="col-md-6 border-right" style="color: #1ABB9C;">
 					<h4 style="color: #1ABB9C;">已交人数：{{ uploaded_students.count }}</h4>
 					{% for student in uploaded_students %}
-						<div class="col-md-6">
+						<div class="col-md-6" style="font-size: 16px">
 							{{ student.user_id }}-{{ student.name }}
 						</div>
 					{% endfor %}
@@ -65,7 +53,7 @@
 				<div class="col-md-6 border-right" style="color: #fa6c65">
 					<h4 style="color: #fa6c65">未交人数：{{ undone_students.count }}</h4>
 					{% for student in undone_students %}
-						<div class="col-md-6">
+						<div class="col-md-6" style="font-size: 16px">
 							{{ student.user_id }}-{{ student.name }}
 						</div>
 					{% endfor %}
@@ -95,16 +83,14 @@
 				</div>
 				<div class="col-md-4 inner-top-md text-center">
 					<p>该作业的最好成绩：</p>
-					<h1>{{ reviewed.0.get_grade_display }}</h1>
+					<h2>{{ reviewed.0.get_grade_display }}</h2>
 				</div>
 				<div class="col-md-8 inner-top-xs">
-				<div id="barchar"></div>
+				<div id="barChart" style="height: 300px; width:100%"></div>
 				</div>
-				<!--
-				<div class="col-md-12 inner-top-xs">
-					<div id="linechart"></div>
+				<div class="col-md-12">
+					<div id="lineChart" style="height: 300px; width:100%"></div>
 				</div>
-			-->
 			</div>
 		</div>
 	</section>
@@ -114,204 +100,109 @@
 {% endblock content %}
 
 {% block javascript %}
-<!-- Resources -->
-<script src="{% static 'amcharts/amcharts.js' %}"></script>
-<script src="{% static 'amcharts/serial.js' %}"></script>
-<script src="{% static 'amcharts/plugins/export/export.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'amcharts/plugins/export/export.css' %}" type="text/css" media="all" />
-<script src="{% static 'amcharts/themes/light.js' %}"></script>
 
-<!-- 成绩分布柱图 -->
+<script src="{% static 'js/echarts.js' %}"></script>
+
 <script>
-var chart = AmCharts.makeChart("barchar", {
-	"type": "serial",
-    "theme": "light",
-	"categoryField": "grade",
-	"rotate": true,
-	"startDuration": 1,
-	"categoryAxis": {
-		"gridPosition": "start",
-		"position": "left"
-	},
-	"trendLines": [],
-	"graphs": [
-		{
-			"balloonText": "count:[[value]]",
-			"fillAlphas": 1,
-			"id": "AmGraph-1",
-			"lineAlpha": 0.2,
-			"title": "count",
-			"type": "column",
-			"valueField": "count"
-		},
-	],
-	"guides": [],
-	"allLabels": [],
-	"balloon": {},
-	"titles": [],
-	"dataProvider": [
-		{
-			"grade": 'A++',
-			"count": 
-				{{ grade_sta | count_grade:"95" }},
-		},
-		{
-			"grade": 'A+',
-			"count": 
-				{{ grade_sta | count_grade:"85" }},
-		},
-		{
-			"grade": 'A',
-			"count": 
-				{{ grade_sta | count_grade:"75" }},
-		},
-		{
-			"grade": 'B',
-			"count": 
-				{{ grade_sta | count_grade:"65" }},
-		},
-		{
-			"grade": 'C',
-			"count": 
-				{{ grade_sta | count_grade:"55" }},
-		},
-	],
-    "export": {
-    	"enabled": false
-     }
-
+var barChart = echarts.init($("#barChart")[0], 'light');
+//显示标题、图例和空的坐标轴
+barChart.setOption({
+	title: {
+            text: '成绩分布',
+            textStyle:{
+            	fontFamily: 'Microsoft Yahei',
+            	fontSize: 16,
+            	color: '#73879C',
+            }
+        },
+        tooltip: {},
+        legend: {
+        	right: 10,
+            data:['人数']
+        },
+        xAxis: {
+            data: []
+        },
+        yAxis: {},
+        series: [{
+            name: '人数',
+            type: 'bar',
+            data: []
+        }]
 });
+//异步加载数据
+barChart.showLoading();
+$.get("gradedis/").done(function(result){	
+	let categories = [];
+	let gradedis = [];
+	$.each(result, function(i, item){
+		categories.push(i)
+		$.each(item, function(ano, count){
+			gradedis.push(count)
+		})
+	});
+		barChart.hideLoading();
+		barChart.setOption({
+		xAxis:{
+			data: categories
+		},
+		series:[{
+			name: "人数",
+			data: gradedis
+		}]
+	})
+})
 </script>
 
-<!-- 答案提交折线图 -->
 <script>
-var chart = AmCharts.makeChart("linechart", {
-    "type": "serial",
-    "theme": "light",
-    "marginRight": 40,
-    "marginLeft": 40,
-    "autoMarginOffset": 20,
-    "mouseWheelZoomEnabled":true,
-    "dataDateFormat": "YYYY-MM-DD",
-    "valueAxes": [{
-        "id": "v1",
-        "axisAlpha": 0,
-        "position": "left",
-        "ignoreAxisWidth":true
-    }],
-    "balloon": {
-        "borderThickness": 1,
-        "shadowAlpha": 0
-    },
-    "graphs": [{
-        "id": "g1",
-        "balloon":{
-          "drop":true,
-          "adjustBorderColor":false,
-          "color":"#ffffff"
+var lineChart = echarts.init($("#lineChart")[0], 'light');
+//显示标题、图例和空的坐标轴
+lineChart.setOption({
+	title: {
+            text: '时间分布',
+            textStyle:{
+            	fontFamily: 'Microsoft Yahei',
+            	fontSize: 16,
+            	color: '#73879C',
+            }
         },
-        "bullet": "round",
-        "bulletBorderAlpha": 1,
-        "bulletColor": "#FFFFFF",
-        "bulletSize": 5,
-        "hideBulletsCount": 50,
-        "lineThickness": 2,
-        "title": "red line",
-        "useLineColorForBulletBorder": true,
-        "valueField": "value",
-        "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
-    }],
-    "chartScrollbar": {
-        "graph": "g1",
-        "oppositeAxis":false,
-        "offset":30,
-        "scrollbarHeight": 80,
-        "backgroundAlpha": 0,
-        "selectedBackgroundAlpha": 0.1,
-        "selectedBackgroundColor": "#888888",
-        "graphFillAlpha": 0,
-        "graphLineAlpha": 0.5,
-        "selectedGraphFillAlpha": 0,
-        "selectedGraphLineAlpha": 1,
-        "autoGridCount":true,
-        "color":"#AAAAAA"
-    },
-    "chartCursor": {
-        "pan": true,
-        "valueLineEnabled": true,
-        "valueLineBalloonEnabled": true,
-        "cursorAlpha":1,
-        "cursorColor":"#258cbb",
-        "limitToGraph":"g1",
-        "valueLineAlpha":0.2,
-        "valueZoomable":true
-    },
-    "valueScrollbar":{
-      "oppositeAxis":false,
-      "offset":50,
-      "scrollbarHeight":10
-    },
-    "categoryField": "date",
-    "categoryAxis": {
-        "parseDates": true,
-        "dashLength": 1,
-        "minorGridEnabled": true
-    },
-    "export": {
-        "enabled": true
-    },
-    "dataProvider": [
-    {
-        "date": "2012-07-27",
-        "value": 13
-    }, {
-        "date": "2012-07-28",
-        "value": 11
-    }, {
-        "date": "2012-07-29",
-        "value": 15
-    }, {
-        "date": "2012-07-30",
-        "value": 16
-    }, {
-        "date": "2012-07-31",
-        "value": 18
-    }, {
-        "date": "2012-08-01",
-        "value": 13
-    }, {
-        "date": "2012-08-02",
-        "value": 22
-    }, {
-        "date": "2012-08-03",
-        "value": 23
-    }, {
-        "date": "2012-08-04",
-        "value": 20
-    }, {
-        "date": "2012-08-05",
-        "value": 17
-    }, {
-        "date": "2012-08-06",
-        "value": 16
-    }, {
-        "date": "2012-08-07",
-        "value": 18
-    }, {
-        "date": "2012-08-08",
-        "value": 21
-    }, {
-        "date": "2012-08-09",
-        "value": 26
-    }, {
-        "date": "2012-08-10",
-        "value": 24
-    }, {
-        "date": "2012-08-11",
-        "value": 29
-    }, ]
+        tooltip: {},
+        legend: {
+        	right: 10,
+            data:['提交数']
+        },
+        xAxis: {
+            data: []
+        },
+        yAxis: {},
+        series: [{
+            name: '提交数',
+            type: 'line',
+            data: []
+        }]
 });
-
+//异步加载数据
+lineChart.showLoading();
+$.get("timedis/").done(function(result){
+	console.log(result);
+	let categories = [];
+	let count = [];
+	$.each(result, function(i, item){
+		categories.push(i)
+		count.push(item)
+	})
+	lineChart.hideLoading();
+	lineChart.setOption({
+		xAxis:{
+			data: categories
+		},
+		series:[{
+			data: count,
+			type: 'line',
+			name: '提交数'
+		}]
+	})
+})
 </script>
 {% endblock javascript %}
 

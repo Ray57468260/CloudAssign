@@ -11,8 +11,9 @@
 <div class="row">
 	{% include 'includes/sidenav.html' %}
 	<div class="col-md-9 inner-left-md border-left">
-		<section class="inner-bottom-xs">
-			<h1 align="right">开设课程&信息管理</h1>
+		<section class="inner-bottom-xs text-right">
+			<h2>开课信息</h2>
+			<p style="font-size:14px;">在这里您可以看到您所管理的课程一览</p>
 		</section>
 		<section id="content" class="border-top-lg">
 			<div class="row"> 
@@ -29,10 +30,8 @@
 					<p>课程简介：{{ course.intro }}</p>
 					<p>已有作业：</p>
 					<div id="{{ course.courseID }}" class="col-md-12 inner-bottom-xs questions-already"></div>
-					<a href="/dispatch/{{ course.courseID }}/publish" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;&nbsp;发&nbsp;布&nbsp;新&nbsp;作&nbsp;业</a>
-					<span class="col-sm-offset-5">
-					<a href="/dispatch/{{ course.courseID }}" class="btn btn-blue"><i class="fa fa-cog fa-lg"></i>&nbsp;查&nbsp;看&nbsp;课&nbsp;程</a>
-					<button class="course-delete btn btn-red" value="{{ course.courseID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;课&nbsp;程</button>
+					<a href="/dispatch/{{ course.courseID }}" class="btn btn-blue btn-small"><i class="fa fa-cog fa-lg"></i>&nbsp;查&nbsp;看&nbsp;课&nbsp;程</a>
+					<button class="course-delete btn btn-red btn-small" value="{{ course.courseID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;课&nbsp;程</button>
 				</div>
 			{% endfor %}
 			</div>

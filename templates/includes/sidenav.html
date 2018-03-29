@@ -5,36 +5,42 @@
         display: none ! important;
     }
 }
+p {
+	font-size: 16px;
+}
+li {
+	font-size: 16px;
+}
 </style>
 <div class="col-md-3 inner-bottom-sm mobile-hide">
 
 	<div class="col-md-12 border-top text-center inner-top-xs inner-bottom-xs">
 		{% if request.user.is_teacher %}
-		<a href="/dispatch/teacher/"><strong style="font-size:23px;">我的课程</strong><span class="fa fa-chevron-right" style="margin-left:20px;"></span></a>
+		<a href="/dispatch/teacher/"><strong style="font-size:20px;">我的课程</strong><span class="fa fa-chevron-right" style="margin-left:20px;"></span></a>
 		{% else %}
 		<a href="/dispatch/student/"><strong style="font-size:23px;">我的课程</strong><span class="fa fa-chevron-right" style="margin-left:20px;"></span></a>
 		{% endif %}
 		<div class="col-md-12 border" style="margin-top:20px; padding:0px;">
 			<div class="col-md-6 border-right" style="padding:8px;">
-				<a id="new-questions" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-question-circle-o fa-lg"></span>&nbsp;&nbsp;&nbsp;最新作业</a>
+				<a id="new-questions" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-question-circle-o fa-lg"></span>&nbsp;最新作业</a>
 			</div>
 			<div class="col-md-6" style="padding:8px;">
-				<a id="new-answers" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-upload fa-lg"></span>&nbsp;&nbsp;&nbsp;最新提交</a>
+				<a id="new-answers" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-upload fa-lg"></span>&nbsp;最新提交</a>
 			</div>
 		</div>
 	</div>
 
 	<div class="col-md-12 inner-bottom-xs">
 		<h3 class="sidelines text-center"><span>作业提醒</span></h3>
-		<p align="center"><a id="unfinished-link" data-toggle="modal" href="#modal-utli" style="font-size:18px;">未完成的作业<span id="unfinished-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
-		<p align="center"><a id="warning-link" data-toggle="modal" href="#modal-utli" style="font-size:18px;">明天晚上截至的作业<span id="warning-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
-		<p align="center"><a id="rejected-link" data-toggle="modal" href="#modal-utli" style="font-size:18px;">被驳回的答案<span id="rejected-bad" class="badge" style="background-color:#f27a24; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a id="unfinished-link" data-toggle="modal" href="#modal-utli">未完成的作业<span id="unfinished-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a id="warning-link" data-toggle="modal" href="#modal-utli">明天晚上截至的作业<span id="warning-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a id="rejected-link" data-toggle="modal" href="#modal-utli">被驳回的答案<span id="rejected-bad" class="badge" style="background-color:#f27a24; margin-top:-3px; margin-left:5px"></span></a></p>
 	</div>
 
 	<div class="col-md-12 border-bottom">
 		<h3 class="sidelines text-center"><span>当前用户</span></h3>
 		<ul class="fa-ul">
-		<li id="name" style="margin:5px; font-size:16px;">
+		<li id="name" style="margin:5px;">
 			{% if request.user.is_teacher %}
 			<span class="fa-li fa fa-graduation-cap" style="margin-top:4px; margin-left:-3px;">
 			</span>用户名：{{ request.user.name }}</li>
@@ -42,9 +48,9 @@
 			<span class="fa-li fa fa-user-o" style="margin-top:4px; margin-left:-3px;">
 			</span>用户名：{{ request.user.name }}</li>
 			{% endif %}
-		<li style="margin:5px;"><span class="fa-li fa fa-barcode" style="margin-top:4px; margin-left:-3px; font-size:16px;"></span>用户号：{{ request.user.user_id }}</li>
-		<li style="margin:5px; font-size:16px;"><span class="fa-li fa fa-street-view" style="margin-top:4px; margin-left:-3px;"></span>学&#12288;院：{{ request.user.dept }}</li>
-		<li style="margin:5px; font-size:16px;"><span class="fa-li fa fa-clock-o" style="margin-top:4px; margin-left:-3px;"></span>上次登录：<br />{{ request.user.last_login }}</li>
+		<li style="margin:5px;"><span class="fa-li fa fa-barcode" style="margin-top:4px; margin-left:-3px;"></span>用户号：{{ request.user.user_id }}</li>
+		<li style="margin:5px;"><span class="fa-li fa fa-street-view" style="margin-top:4px; margin-left:-3px;"></span>学&#12288;院：{{ request.user.dept }}</li>
+		<li style="margin:5px;"><span class="fa-li fa fa-clock-o" style="margin-top:4px; margin-left:-3px;"></span>上次登录：<br />{{ request.user.last_login }}</li>
 		</ul>
 		{% if request.user.is_staff %}
 		<div class="text-center inner-bottom-xs">

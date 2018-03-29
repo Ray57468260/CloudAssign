@@ -2,26 +2,24 @@
 {% block title %}首页{% endblock %}
 {% block content %}
     <section id="image-background-3" class="dark-bg img-bg-softer" style="background-image: url(/static/images/pattern-background02.png);">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8 col-md-offset-2 padding-top-80 padding-bottom-60">
-                  <h1 class="text-center">云作业与无纸化</h1>
-                    <p class="text-center">我们致力于帮助你在任何地点、任何时间，发布、提交、批改你的作业、考试卷
-                    </p>
-                    <p class="text-center">
-                        {% if request.user.is_teacher %}
-                      <a href="/dispatch/teacher/" class="btn btn-large">
-                        {% else %}
-                      <a href="/dispatch/student/" class="btn btn-large">
-                        {% endif %}
-                        <span class="text">现&#12288;在&#12288;开&#12288;始</span></a>
-                    </p>
-                </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 padding-top-80 padding-bottom-60">
+              <h1 class="text-center">云作业与无纸化</h1>
+                <p class="text-center">我们致力于帮助你在任何地点、任何时间，发布、提交、批改你的作业、考试卷
+                </p>
+                <p class="text-center">
+                    {% if request.user.is_teacher %}
+                  <a href="/dispatch/teacher/" class="btn btn-large">
+                    {% else %}
+                  <a href="/dispatch/student/" class="btn btn-large">
+                    {% endif %}
+                    <span class="text">现&#12288;在&#12288;开&#12288;始</span></a>
+                </p>
             </div>
         </div>
     </section>
 
-    <section id="features" class="container home-spotlight">
+    <section id="features" class="home-spotlight">
         <div class="col-sm-12">
             <br />
             <div class="sigma-content sigma-middle-line">
@@ -47,7 +45,7 @@
                         <span class="fa-stack fa-3x">
                           <div class="fa fa-check-square-o fa-1x"></div>
                         </span>
-                        <h3>点名册</h3>
+                        <h3>自动点名册</h3>
                         <p>记录、统计作业的提交情况，已交未交一目了然</p>
                     </div>
                 </div>

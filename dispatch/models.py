@@ -37,7 +37,7 @@ class Question(models.Model):
         _('questionID'), max_length=255, primary_key=True, unique=True, default=000)
     user_id = models.IntegerField(_('userID'), default=1)
     courseID = models.ForeignKey(
-        Course, related_name='Question_courseID', on_delete=models.CASCADE)
+        Course, related_name='Question_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     subject = models.CharField(
         _('subject'), max_length=500, default='undefined')
     content = models.TextField(
@@ -65,11 +65,11 @@ class Answer(models.Model):
         ('75', 'A'),
         ('85', 'A+'),
         ('95', 'A++'),
-    )
+    )  # 请与views.py的grade_map同步修改
     user_id = models.ForeignKey(
         User, related_name='Answer_owner', on_delete=models.CASCADE)
     questionID = models.ForeignKey(
-        Question, related_name='Answer_questionID', on_delete=models.CASCADE)
+        Question, related_name='Answer_questionID', on_delete=models.SET_NULL, blank=True, null=True)
     subject = models.CharField(
         _('subject'), max_length=500, default='undefined')
     content = models.TextField(

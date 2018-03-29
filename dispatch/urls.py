@@ -9,6 +9,10 @@ urlpatterns = [
          course_info.as_view(), name='course_info_post'),
     path(r'<int:courseID>/<int:questionID>/statistics/',
          question_statistics.as_view(), name='question_statistics'),
+    path(r'<int:courseID>/<int:questionID>/statistics/gradedis/',
+         question_statistics_gradedis, name='question_statistics_gradedis'),
+    path(r'<int:courseID>/<int:questionID>/statistics/timedis/',
+         question_statistics_timedis, name='question_statistics_timedis'),
 
     path(r'<int:courseID>/<int:questionID>/review/',
          question_review.as_view(), name='question_review_get_answers'),

@@ -1,5 +1,12 @@
 {% load custom_filters %}
-<div class="breadcrumbs row">
+<style>
+@media only screen and (max-width: 750px) {
+    .mobile-hide {
+        display: none ! important;
+    }
+}
+</style>
+<div class="breadcrumbs row mobile-hide">
 	<div class="col-md-12">
 	<ol class="breadcrumb" style="font-size:16px;">现在位置：
 	    <li><a href="/">首页</a></li>
