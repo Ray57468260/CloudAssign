@@ -3,6 +3,14 @@ from django.forms import ModelForm
 from .models import *
 
 
+class ExamForm(ModelForm):
+
+    class Meta:
+        model = Exam
+        fields = ['courseID', 'title', 'intro',
+                  'choices', 'judges', 's_answers', 'blanks']
+
+
 class ChoiceForm(ModelForm):
 
     class Meta:

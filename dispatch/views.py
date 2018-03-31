@@ -369,6 +369,77 @@ def question_statistics_timedis(request, courseID, questionID):
         return JsonResponse(result)
 
 
+@is_teacher
+def course_statistics(request, courseID):
+    if request.method == 'GET':
+        course = Course.objects.prefetch_related(
+            'student').get(courseID=courseID)
+        students = course.student.all()
+        return render(request, 'dispatch/course_statistics.html', {'course': course, 'students': students})
+
+
+@is_teacher
+def course_statistics_gradetrend(request, courseID):
+    if request.method == 'GET':
+        stas = {}
+        students = json.loads(request.GET['students'])
+        questions = Course.objects.prefetch_related('Question_courseID').get(
+            courseID=courseID).Question_courseID.all().order_by('created_at')
+        for student in students:
+            stas[student] = []
+            for question in questions:
+                try:
+                    answer = question.Answer_questionID.filter(
+                        user_id=student).order_by('-grade')[0]
+                    stas[student].append({question.subject: answer.grade})
+                except IndexError as e:
+                    pass
+        print(stas)
+        return JsonResponse(stas)
+
+
+@is_teacher
+def course_statistics_count(request, courseID):
+    if request.method == 'GET':
+        students = json.loads(request.GET['students'])
+        stas = {}
+        questions = list(Course.objects.filter(
+            courseID=courseID).select_related('Question_courseID').all().values('Question_courseID'))
+        qid = []
+        for q in questions:
+            qid.append(q['Question_courseID'])
+        for student in students:
+            stas[student] = []
+            uploaded_count = Answer.objects.filter(
+                user_id=student, questionID__in=qid).aggregate(Count('questionID'))
+            stas[student].append(uploaded_count)
+            absence = []
+            for q in qid:
+                if(Answer.objects.filter(user_id=student, questionID=q).exists()):
+                    pass
+                else:
+                    absence.append(list(Question.objects.filter(
+                        questionID=q).values('subject')))
+            stas[student].append({'absence': absence})
+        return JsonResponse(stas)
+
+
+@is_teacher
+def course_statistics_ctrend(request, courseID):
+    if request.method == 'GET':
+        stas = {}
+        questions = Course.objects.get(
+            courseID=courseID).Question_courseID.annotate(answers_count=Count('Answer_questionID'))
+        for question in questions:
+            stas[question.subject] = []
+            stas[question.subject].append(
+                {'answers_count': question.answers_count})
+            avg_grade = question.Answer_questionID.filter(
+                status=False, accepted=True).aggregate(Avg('grade'))
+            stas[question.subject].append(avg_grade)
+        return JsonResponse(stas, safe=False)
+
+
 class course_create(Auth, LoginRequiredMixin, View):
     """
     教师创建课程，GET方法返回创建信息表格，POST方法创建课程，若courseID重复可自行修正

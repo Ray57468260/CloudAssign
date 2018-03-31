@@ -146,7 +146,7 @@
 	    	console.log(result);
 			$('#modal-success').modal('show');
 			$('.close-btn').click(function(){
-				location.reload(true); 
+				location.href = "/dispatch/{{ courseID }}/"; 
 			});
 	    }
 	});

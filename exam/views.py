@@ -60,16 +60,7 @@ class LoginRequiredMixin(object):
 
 class exam_draft(Auth, LoginRequiredMixin, View):
 
-    def get(self, request, courseID, draft_id):
-        courses = Course.objects.filter(teacher=request.user.user_id)
-        if draft_id != 0:
-            draft = Draft.objects.filter(id=draft_id)
-        else:
-            draft = Draft.objects.filter(
-                courseID=courseID, status=True).order_by('-created_at')[0]
-        return render(request, 'exam_build.html', {'courses': courses, 'draft': draft})
-
-    def post(self, request, courseID, draft_id):
+    def post(self, request):
         data = request.body.decode('utf-8')
         json_request = json.loads(data)
         form = DraftForm(data=json_request)
@@ -80,7 +71,8 @@ class exam_draft(Auth, LoginRequiredMixin, View):
             e_string = json.dumps(e_dict)
             draft.draft_string = e_string
             draft.save()
-            result = {'result': draft.id}
+            print('完成快照创建！快照id：', draft.id)
+            result = {'result': True}
         else:
             print(form.errors)
             result = {'result': False}
@@ -91,50 +83,96 @@ class exam_draft(Auth, LoginRequiredMixin, View):
 def exam_auto_generate(request):
     if request.method == 'POST':
 
-        def pickle_in_random(querysets, length, count):
+        def pickle_in_random(querysets, length, count, e_type):
+            """
+            querysets:调用函数需要提供的试题QuerySet对象
+            length:QuerySet对象总长度
+            count:需要随机组合的试题数
+            e_type:当前题型
+            """
             this = es[e_type]
+            print('\ncurrent:', e_type)
             if length > count:
-                pickle_list = [random.randint(0, length - 1)
-                               for _ in range(count)]
-                while len(set(pickle_list)) != count:
+                current_rate = 0
+                flag = False
+                already_me = already[e_type]
+                for k in range(0, 100):  # 随机上限100次， 下称百次循环
+                    this = {}
+                    current_list = []  # 存储当前随机组合
                     pickle_list = [random.randint(0, length - 1)
                                    for _ in range(count)]
-                for pickle in pickle_list:
-                    this[querysets[pickle].id] = querysets[pickle].descri
+                    while len(set(pickle_list)) != count:
+                        pickle_list = [random.randint(0, length - 1)
+                                       for _ in range(count)]
+                        # pickle_list是序号组合，不是实际试题的id组合
+                    for pickle in pickle_list:
+                        this[querysets[pickle].id] = querysets[
+                            pickle].descri  # 将随机序号映射成实际id
+                        current_list.append(str(querysets[pickle].id))
+                    for already_list in already_me:  # 随机组合在已有试题组内进行重复率比较
+                        print('\n%s.th round for %s' % (k + 1, e_type))
+                        print('current_list:', current_list)
+                        print('already_list:', already_list)
+                        current_rate = len(set(current_list) &
+                                           set(already_list)) / count
+                        if current_rate <= float(repeat_rate):
+                            print('success, current_rate:', current_rate)
+                            flag = True  # 成功找到一个组合，设置退出标志
+                            break
+                        else:
+                            print('fail, current_rate:', current_rate)
+                            continue
+                    if flag:  # 100次随机任意一次成功，则退出百次循环
+                        break
+                if k == 99:  # 100次随机仍然找不到符合条件，则随机失败， 反之成功，返回试题组合
+                    print('\nfail to random:%s \n' % e_type)
+                    return False
+                else:
+                    print('find one for %s, repeat_rate: %d \n' %
+                          (e_type, current_rate))
+                    return this, current_rate
             else:
-                for e in querysets:
-                    this[e.id] = e.descri
-            return this
+                return False
 
         def case1(courseID, e_type, count):
             es[e_type] = {}
+            rpr[e_type] = {}
             choices = Choice.objects.filter(courseID=courseID, is_single=True)
-            es[e_type] = pickle_in_random(choices, choices.count(), count)
-            return es[e_type]
+            es[e_type], rpr[e_type] = pickle_in_random(
+                choices, choices.count(), count, e_type)
+            return es[e_type], rpr[e_type]
 
         def case2(courseID, e_type, count):
             es[e_type] = {}
+            rpr[e_type] = {}
             choices = Choice.objects.filter(courseID=courseID, is_single=False)
-            es[e_type] = pickle_in_random(choices, choices.count(), count)
-            return es[e_type]
+            es[e_type], rpr[e_type] = pickle_in_random(
+                choices, choices.count(), count, e_type)
+            return es[e_type], rpr[e_type]
 
         def case3(courseID, e_type, count):
             es[e_type] = {}
+            rpr[e_type] = {}
             judges = Judge.objects.filter(courseID=courseID)
-            es[e_type] = pickle_in_random(judges, judges.count(), count)
-            return es[e_type]
+            es[e_type], rpr[e_type] = pickle_in_random(
+                judges, judges.count(), count, e_type)
+            return es[e_type], rpr[e_type]
 
         def case4(courseID, e_type, count):
             es[e_type] = {}
+            rpr[e_type] = {}
             s_answers = S_answer.objects.filter(courseID=courseID)
-            es[e_type] = pickle_in_random(s_answers, s_answers.count(), count)
-            return es[e_type]
+            es[e_type], rpr[e_type] = pickle_in_random(
+                s_answers, s_answers.count(), count, e_type)
+            return es[e_type], rpr[e_type]
 
         def case5(courseID, e_type, count):
             es[e_type] = {}
+            rpr[e_type] = {}
             blanks = Blank.objects.filter(courseID=courseID)
-            es[e_type] = pickle_in_random(blanks, blanks.count(), count)
-            return es[e_type]
+            es[e_type], rpr[e_type] = pickle_in_random(
+                blanks, blanks.count(), count, e_type)
+            return es[e_type], rpr[e_type]
 
         switch = {
             's-choice': case1,
@@ -147,12 +185,26 @@ def exam_auto_generate(request):
         data = request.body.decode('utf-8')
         json_request = json.loads(data)
         courseID = json_request['courseID']
+        repeat_rate = json_request['repeat_rate']
         e_dict = json_request['dict']
+
+        drafts = Draft.objects.filter(
+            courseID=courseID).values('id', 'draft_string')
+        already = {'s-choice': [], 'm-choice': [],
+                   'judge': [], 's-answer': [], 'blank': []}
+        for d in drafts:
+            raw = json.loads(d['draft_string'])
+            for key in raw:
+                already[key].append(list(raw[key].keys()))
+        print(already)
+        print('查重率上限：', repeat_rate)
         es = {}
+        rpr = {}
         for e_type in e_dict:
             count = int(e_dict[e_type])
-            es[e_type] = switch[e_type](courseID, e_type, count)
-        result = {'result': es}
+            es[e_type], rpr[e_type] = switch[e_type](courseID, e_type, count)
+        # print(es)
+        result = {'result': es, 'rpr': rpr}
         return JsonResponse(result)
 
 
@@ -215,28 +267,25 @@ class exam_build(Auth, LoginRequiredMixin, View):
             'blank': case5,
         }
 
+        print(request.POST)
         data = request.body.decode('utf-8')
         json_request = json.loads(data)
-        courseID = json_request['courseID']
-        course = Course.objects.get(courseID=courseID)
-        title = json_request['title']
-        intro = json_request['intro']
+        print(json_request)
         e_dict = json_request['dict']
-        exam = Exam(courseID=course, title=title, intro=intro)
-        exam.save()
-        UserObjectPermission.objects.assign_perm(
-            'delete_exam', request.user, obj=exam)
-
-        for e_type in e_dict:
-            switch[e_type](e_dict[e_type])
-        result = {'exam_id': exam.id}
+        form = ExamForm(data=json_request)
+        if form.is_valid():
+            exam = form.save()
+            for e_type in e_dict:
+                switch[e_type](e_dict[e_type])
+            print('完成试卷创建！试卷id：', exam.id)
+            result = {'result': True}
+        else:
+            print(exam.errors)
+            result = {'result': False}
         return JsonResponse(result)
 
 
-@permission_required('delete_exam',
-                     (Exam, 'id', 'id'),
-                     accept_global_perms=True, return_403=True, return_404=False)
-def exam_delete(request, courseID, id):
+def exam_delete(request, courseID):
     if request.method == 'POST':
         exam_id = request.POST['exam_id']
         exam = Exam.objects.get(id=exam_id)

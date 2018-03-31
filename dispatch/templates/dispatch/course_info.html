@@ -52,10 +52,11 @@
 					
 					{% if request.user.is_teacher %}
 					<div class="col-md-12">
-						<a href="/dispatch/{{ course.courseID }}/publish/" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;发布新作业</a>
-						<a href="{% url 'exam_build' %}" class="btn btn-lg"><i class="fa fa-file"></i>&nbsp;创建新试卷</a>
-						<a href="/exam/teacher/{{ course.courseID }}/" class="btn btn-lg btn-blue"><i class="fa fa-print"></i>&nbsp;试卷管理</a>
-						<button id="course-edit" class="btn btn-lg btn-blue"><i class="fa fa-cog"></i>&nbsp;编辑课程信息</button>
+						<a href="/dispatch/{{ course.courseID }}/publish/" class="btn btn-small"><i class="fa fa-file"></i>&nbsp;发布新作业</a>
+						<a href="{% url 'exam_build' %}" class="btn btn-small"><i class="fa fa-file"></i>&nbsp;创建新试卷</a>
+						<a href="/exam/teacher/{{ course.courseID }}/" class="btn btn-blue btn-small"><i class="fa fa-print"></i>&nbsp;试卷管理</a>
+						<a href="/dispatch/{{ course.courseID }}/statistics/" class="btn btn-blue btn-small"><i class="fa fa-line-chart"></i>&nbsp;课程数据</a>
+						<button id="course-edit" class="btn btn-blue btn-small"><i class="fa fa-cog"></i>&nbsp;编辑课程信息</button>
 					</div>
 					{% endif %}
 				</div>
@@ -77,8 +78,7 @@
 						</div>
 						{% for student in course_students %}
 						<div class="col-sm-4">
-							<p>{{ student.user_id }}</p>
-							<p>{{ student.name }}</p>
+							<p>{{ student.user_id }}-{{ student.name }}</p>
 						</div>
 						{% endfor %}
 					{% else %}

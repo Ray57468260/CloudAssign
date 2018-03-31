@@ -3,7 +3,7 @@ from .views import *
 
 
 urlpatterns = [
-    path(r'teacher/build/draft/<int:courseID>/<int:draft_id>/',
+    path(r'teacher/build/draft/',
          exam_draft.as_view(), name="exam_draft"),
     path(r'teacher/build/auto/',
          exam_auto_generate, name="exam_auto_generate"),
@@ -11,7 +11,7 @@ urlpatterns = [
          exam_build.as_view(), name="exam_build"),
     path(r'teacher/<int:courseID>/',
          exam_manage.as_view(), name="exam_manage"),
-    path(r'teacher/<int:courseID>/delete/<int:id>/',
+    path(r'teacher/<int:courseID>/delete/',
          exam_delete, name="exam_delete"),
     path(r'teacher/bank/',
          bank_manage.as_view(), name="bank_manage"),

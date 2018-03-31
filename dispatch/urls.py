@@ -40,6 +40,14 @@ urlpatterns = [
 
     path(r'<int:courseID>/edit/',
          course_edit.as_view(), name='course_edit'),
+    path(r'<int:courseID>/statistics/',
+         course_statistics, name='course_statistics'),
+    path(r'<int:courseID>/statistics/gradetrend/',
+         course_statistics_gradetrend, name='course_statistics_gradetrend'),
+    path(r'<int:courseID>/statistics/count/',
+         course_statistics_count, name='course_statistics_count'),
+    path(r'<int:courseID>/statistics/ctrend/',
+         course_statistics_ctrend, name='course_statistics_ctrend'),
     path(r'<int:courseID>/',
          course_info.as_view(), name='course_info'),
 

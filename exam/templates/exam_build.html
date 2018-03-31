@@ -92,13 +92,21 @@
 									<label>简答题：</label>
 									<input type="text" data-type="s-answer" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
 								</div>
+								<div class="form-group" style="margin: 10px">
+									<label>查重率上限：</label>
+									<select id="repeat-rate" name="repeat-rate" style="margin-bottom: 0px; height:33px;">
+										<option value="0.1">10%</option>
+										<option value="0.2">20%</option>
+										<option value="0.3">30%</option>
+									</select>
+								</div>
 							</form>
 							<button id="generate-a" class="btn btn-small btn-navy">生成随机试卷</button>
-							<p>注意：每次生成都会覆盖已有试题</p>
+							<p>注意：查重率过低会增加随机生成的处理时间，一定概率会导致随机失败</p>
 						</div>
 						<div id="e-type-list" class="col-md-12 inner-top-xs" style="">
 						</div>
-						<div class="col-md-12">
+						<div class="col-md-12" hidden="hidden">
 							<button id="apply-draft" class="btn btn-gray btn-small pull-right">应用最后一次草稿</button>
 							<button id="save-draft" class="btn btn-gray btn-small pull-right" style="margin-right: 5px;">保存草稿</button>
 						</div>
@@ -254,7 +262,7 @@
 //添加新题型
 jQuery.e_type_add = function(e_type) {   
 	jQuery.translate(e_type);
-	$("#e-type-list").append("<div class=\"new-e-type\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\"><h4 class=\"sidelines text-center\"><span id=\""+e_type+"\" class=\"e-type-name\" style=\"cursor: pointer; font-weight: normal;\">"+e_type_name+"</span></h4><div class=\"drop-help\" style=\"height: 50px; line-height: 50px; background:rgba(245,245,245,0.5); border-radius: 10px; font-size: 14px;\">点击添加按钮或拖拽到此处释放</div><button class=\"display-toggle btn btn-small btn-navy\">展开/隐藏试题详情</button></div>");
+	$("#e-type-list").append("<div class=\"new-e-type\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\"><h4 class=\"sidelines text-center\"><span id=\""+e_type+"\" class=\"e-type-name\" style=\"cursor: pointer; font-weight: normal;\">"+e_type_name+"</span></h4><div class=\"drop-help\" style=\"height: 50px; line-height: 50px; background:rgba(245,245,245,0.5); border-radius: 10px; font-size: 14px;\">点击添加按钮或拖拽到此处释放</div><p class=\"rpr\" style=\"display: none\"></p><button class=\"display-toggle btn btn-small btn-navy\">展开/隐藏试题详情</button></div>");
 	jQuery.hover_delete();
 };  
 
@@ -416,6 +424,7 @@ $(document).ready(function(){
 $("#generate-a").click(function(){
 	$("#e-type-list").append("<div id=\"randoming\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在加载试题...</span></div>")
 	var courseID = $("#id_courseID").val();
+	var repeat_rate = $("#repeat-rate").val();
 	var dict = {};
 	$("#config-a-form input").each(function(){
 		var e_type = $(this).data("type");
@@ -426,6 +435,7 @@ $("#generate-a").click(function(){
 	})
 	var data = {
 		'courseID': courseID,
+		'repeat_rate': repeat_rate,
 		dict,
 	}
 	var json = JSON.stringify(data)
@@ -436,13 +446,20 @@ $("#generate-a").click(function(){
 	    data: json,
 	    success: function(result){
 			$("#e-type-list").empty();
+			console.log(result)
 			$.each(result['result'], function(e_type, item){
 				jQuery.translate(e_type);
 				jQuery.e_type_add(e_type);
+				if (item==false){
+					alert("随机失败：请降低查重率上限、或减少随机题数、或扩充题库！")
+				}
 				$.each(item, function(id, descri){
 					jQuery.e_add(e_type, id, descri)
 				})
 			});
+			$.each(result['rpr'], function(e_type, item){
+				$("#"+e_type).parent().siblings(".rpr").text("查重率："+item*100+"%").show()
+			})
 	    }
 	});
 	$("#randoming").remove();
@@ -470,7 +487,7 @@ $("#next-step").click(function(){
 		console.log(dict)
 		$.each(dict, function(e_type, item){
 			jQuery.translate(e_type);
-			$("#point-distrib").append("<div class=\"col-md-12\"><h3 class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
+			$("#point-distrib").append("<div class=\"col-md-12\"><h3 data-id="+e_type+" class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
 			$.each(item, function(e_id, descri){
 		    	$("#point-distrib-footer"+e_type).before("<div class=\"col-md-12\" style=\"font-size: 14px;\"><span>分值：<input type=\"text\" class=\"e-point\"  style=\"height: 25px; width: 50px; margin-bottom: 0px; margin-right: 10px;\" data-id=\""+e_id+"\" class=\"form-control\" oninput=\"CalPoint()\"/></span><span>"+descri+"</span></div>")
 			})
@@ -485,13 +502,10 @@ $("#next-step").click(function(){
 <script>
 function BulkPoint(){
 	var bulk_point = event.target.value;
-	console.log(bulk_point)
 	$(event.target).closest(".col-md-10").siblings().find(".e-point").val(bulk_point);
 	CalPoint();
 }
-</script>
 
-<script>
 function CalPoint(){
 	$(event.target).closest(".col-md-12").prevAll(".col-md-10").find(".bulk-point").val("----");
 	var addup_point = 0;
@@ -508,7 +522,7 @@ function CalPoint(){
 	$(".upload-btn").click(function(){
 		var dict = {}
 		$(".modal-e-type").each(function(){
-			var e_type = $(this).text();
+			var e_type = $(this).data("id");
 				dict[e_type] = {}
 			$(this).siblings(".col-md-12").each(function(){
 				var e_id = $(this).find("input").data("id"),
@@ -526,12 +540,23 @@ function CalPoint(){
 			dict,
 		}
 		var json = JSON.stringify(data)
+		//上传试卷
 		$.ajax({
 		    url: "{% url 'exam_build' %}",
 		    type: "POST",
 		    headers: {"X-CSRFToken": $.cookie("csrftoken") },
 		    data: json,
 		    success: function(result){
+		    	//保存快照
+				$.ajax({
+				    url: "{% url 'exam_draft' %}",
+				    type: "POST",
+				    headers: { "X-CSRFToken": $.cookie("csrftoken") },
+				    data: json,
+				    success: function(result){
+				    	console.log(result);
+				    }
+				});
 		    	location.href = "/exam/teacher/"+courseID+"/";
 		    }
 		});
