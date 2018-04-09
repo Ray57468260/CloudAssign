@@ -240,7 +240,6 @@
 	</div><!-- /.modal -->
 </div>
 
-
 {% endblock content %}
 
 {% block javascript %}
@@ -371,7 +370,7 @@ $(document).on("click", ".e-type-name", function(){
 		var e_type = $("#id_e_type").val();
 		var keyword = $("#id_keyword").val();
 		var csrftoken = $.cookie("csrftoken");
-		var url = "/exam/teacher/bank/query/";
+		var url = "{% url 'bank_query_alter' %}";
 		$("#candidate").load(url, {'csrfmiddlewaretoken': csrftoken,'courseID':courseID, 'e_type': e_type, 'keyword': keyword});
 
 	})

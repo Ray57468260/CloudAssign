@@ -41,8 +41,8 @@
                             <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url 'tools' %}">定制工具</a></li>
                             {% if user.is_teacher %}
+                            <li><a href="{% url 'tools' %}">定制工具</a></li>
                             <li><a href="{% url 'course_teacher' %}">我的课程</a></li>
                             {% else %}
                             <li><a href="{% url 'course_subscription' %}">我的课程</a></li>

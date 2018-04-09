@@ -34,13 +34,13 @@
 					<p style="color:#d9534f; font-size:16px;">状态：已关闭</p>
 					{% endif %}
 					<div>
-					<button id="question-edit" class="btn btn-blue bten-small" value="{{ question.questionID }}"><i class="fa fa-cog fa-lg"></i>&nbsp;编&nbsp;辑&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-edit" class="btn btn-blue btn-small" value="{{ question.questionID }}"><i class="fa fa-cog fa-lg"></i>&nbsp;编&nbsp;辑&nbsp;该&nbsp;作&nbsp;业</button>
 					{% if question.status %}
-					<button id="question-close" class="btn bten-small" value="{{ question.questionID }}"><i class="fa fa-close fa-lg"></i>&nbsp;关&nbsp;闭&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-close" class="btn btn-small" value="{{ question.questionID }}"><i class="fa fa-close fa-lg"></i>&nbsp;关&nbsp;闭&nbsp;该&nbsp;作&nbsp;业</button>
 					{% else %}
-					<button id="question-open" class="btn bten-small" value="{{ question.questionID }}"><i class="fa fa-check fa-lg"></i>&nbsp;开&nbsp;放&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-open" class="btn btn-small" value="{{ question.questionID }}"><i class="fa fa-check fa-lg"></i>&nbsp;开&nbsp;放&nbsp;该&nbsp;作&nbsp;业</button>
 					{% endif %}
-					<button id="question-delete" class="btn btn-red bten-small" value="{{ question.questionID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;该&nbsp;作&nbsp;业</button>
+					<button id="question-delete" class="btn btn-red btn-small" value="{{ question.questionID }}"><i class="fa fa-trash-o fa-lg"></i>&nbsp;删&nbsp;除&nbsp;该&nbsp;作&nbsp;业</button>
 					</div>
 				</div>
 			</div>

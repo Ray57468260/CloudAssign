@@ -215,6 +215,7 @@ class question_review(Auth, LoginRequiredMixin, View):
                 questionID=questionID).order_by('created_at')
         except Question.DoesNotExist:
             question = False
+        print(answers[1].get_grade_display())
         return render(request, 'dispatch/question_review.html', {'course': course, 'question': question, 'answers': answers})
 
     @method_decorator(permission_required('change_answer',
@@ -561,9 +562,18 @@ class course_info(LoginRequiredMixin, View):
                                           (Question, 'questionID', 'questionID'),
                                           accept_global_perms=True, return_403=True, return_404=False))
     def post(self, request, courseID, questionID):
-        answer = Question.objects.get(questionID=questionID)
-        answer.delete()
+        question = Question.objects.get(questionID=questionID)
+        question.delete()
         result = {'is_valid': True}
+        return JsonResponse(result)
+
+
+@is_teacher
+def course_subscription_clear(request, courseID):
+    if request.method == 'GET':
+        students = Course.objects.get(courseID=courseID).student.all()
+        students.delete()
+        result = {'result': True}
         return JsonResponse(result)
 
 

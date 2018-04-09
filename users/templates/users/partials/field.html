@@ -13,11 +13,11 @@
 		{% endif %}
 		{% if field|is_checkbox %}
 			{{ field }}
-		{% endif %}<br>
-		<h3 class="sidelines text-center">
+		{% endif %}
+		<h4 class="sidelines text-center">
 			<span for="{{ field.id_for_label }}"{% if field.field.required %} class="required"{% endif %}>{{ field.label }}
 			</span>
-		</h3>
+		</h4>
 		{% if not field|is_checkbox %}
 			{{ field }}
 		{% endif %}

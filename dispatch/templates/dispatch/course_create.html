@@ -8,7 +8,7 @@
 	<div class="col-md-9 inner-left-md border-left">
 		<section class="inner-bottom-xs text-right">
 			<h2>创建新课程&编辑课程信息</h2>
-			<p style="font-size:14px;">在这里您可以创建新的课程，新课程下可以创新作业和试卷、题库</p>
+			<p style="font-size:14px;">在这里您可以创建新的课程，课程是您使用本系统完成教学管理的基础</p>
 		</section>
 		<section id="course-info" class="border-top-lg">
 			<div class="row"> 
@@ -126,7 +126,7 @@
 			$("form").ajaxSubmit(function(){
 				$("#modal-success").modal('show');
 				setTimeout(function(){
-					window.location.href="/dispatch/course/teacher/";
+					window.location.href="{% url 'course_teacher' %}";
 				}, 3000);
 
 			});

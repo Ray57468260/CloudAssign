@@ -85,10 +85,15 @@ class Exam(models.Model):
     status = models.BooleanField(_('status'), default=True)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 
+    class Meta:
+        get_latest_by = 'created_at'
+
 
 class Draft(models.Model):
     courseID = models.ForeignKey(
         Course, related_name='Draft_courseID', on_delete=models.SET_NULL, blank=True, null=True)
+    exam = models.ForeignKey(
+        Exam, related_name='Draft_examID', on_delete=models.CASCADE, blank=True, null=True)
     title = models.CharField(_('试卷题目'), max_length=64, blank=True)
     intro = models.CharField(_('备注'), max_length=255, blank=True)
     draft_string = models.TextField(_('草稿'))

@@ -84,7 +84,7 @@
 						<span><a href="javascript:void(0)" @click="FormShow">创建试题表单</a></span>
 					</h4>
 					<div v-show="form_show">
-						<form v-html="one_form">
+						<form id="one-form" v-html="one_form">
 						</form>
 						<button class="btn btn-small btn-navy btn-block" @click.prevent="OneUpload">上传</button>
 		    		</div>
@@ -379,9 +379,11 @@ Vue.component('add-import', {
 		},
 		//上传单条试题创建表单
 		OneUpload: function(){
+			$("#id_courseID").val(this.one_courseID);
 			let csrftoken = $.cookie("csrftoken");
 	  		let form = $("#one-form")[0];
-	  		let formData = new FormData(form)
+	  		let formData = new FormData(form);
+	  		console.log(form)
 			axios({
 				method: 'POST',
 				url: 'add/'+this.one_e_type+"/",
@@ -427,7 +429,7 @@ Vue.component('add-import', {
 		    	}else{
 				//触发查询按钮
 		    		console.log(response)
-		    		bus.$emit('query', (this.bulk_courseID, this.bulk_e_type))
+		    		bus.$emit('query', this.bulk_courseID, this.bulk_e_type)
 		    	}
 			}.bind(this))
 		    .catch(function (error) {
@@ -555,6 +557,7 @@ Vue.component('edit', {
 			})
 			.then(function(response){
 				console.log(response)
+	    		bus.$emit('query-self');
 			})
 		    .catch(function (error) {
 		    	console.log(error);
@@ -654,25 +657,29 @@ Vue.component('e-candidata', {
 	created(){
 		bus.$on('query', function(courseID, e_type) {
 			this.query_courseID = courseID,
-			this.query_e_type = e_type
-			this.query_keyword = ''
+			this.query_e_type = e_type,
+			this.query_keyword = '',
+			console.log(this.query_courseID, this.query_e_type),
 			this.query()
-		}.bind(this))
+		}.bind(this));
+		bus.$on('query-self', function(){
+			this.query()
+		}.bind(this));
 	},
 	methods: {
 		//查询题库
 		query: function(evnet){
 			let csrftoken = $.cookie("csrftoken");
-			var url = "{% url 'bank_query_editable' %}";
+			var url = "{% url 'bank_query' %}";
+			let formData = new FormData();
+			formData.append('courseID', this.query_courseID);
+			formData.append('e_type', this.query_e_type);
+			formData.append('keyword', this.query_keyword);
 			axios({
 				method: 'POST',
 				url: url, 
 	  			headers: {'X-CSRFToken': csrftoken},
-				data: {
-			    courseID: this.query_courseID,
-			    e_type: this.query_e_type,
-			    keyword: this.query_keyword,
-				}
+				data: formData,
 			  })
 			  .then(function (response) {
 			  	this.candidate_list = response.data

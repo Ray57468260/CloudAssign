@@ -18,7 +18,7 @@
 		</section>
 		<section class="border-top-lg">
 			<div class="row"> 
-				<div class="col-sm-12 inner-right-xs inner-top-xs">
+				<div class="col-sm-12 inner-right-xs inner-top-xs border-bottom">
 					<h2 class="sidelines text-center">
 						<span>{{ course.course }}
 						</span>
@@ -62,19 +62,19 @@
 				</div>
 			</div>
 		</section>
-
+		
+		{% if request.user.is_teacher %}
 		<section class="inner-bottom-xs inner-top-xs">
 			<div class="row">
 			<h3 class="sidelines text-center"><span>点名册</span></h3>
 				<div class="col-sm-12 inner-right-xs">
 					{% if course_students %}
-						<div class="col-sm-12">
+						<div class="col-sm-10">
 							<h4>总人数:{{ course_students_num }}</h4>
-							<p>按学号排序
-							<span class="fa fa-long-arrow-right"></span>
-							<br />
-							<br />
-							</p>
+							<p>按学号排序<span class="fa fa-long-arrow-right"></span></p>
+						</div>
+						<div class="col-sm-2">
+						<button id="btn-clear" class="btn btn-red btn-small">清空名册</button>
 						</div>
 						{% for student in course_students %}
 						<div class="col-sm-4">
@@ -87,6 +87,7 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	</div>
 </div>
 
@@ -116,6 +117,37 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" id="edit-confirm" class="btn btn-default" data-dismiss="modal">确认
+				</button>
+				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal-clear" tabindex="-1" role="dialog" aria-labelledby="modal-clear" aria-hidden="true" style="display:none;">
+	<div class="modal-dialog modal-xs">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+					<span aria-hidden="true">
+						<i class="icon-cancel-1"></i>
+					</span>
+				</button>
+				<h4 class="modal-title">
+					清空点名册
+				</h4>
+			</div>
+			<div class="modal-body">
+				<h2 align="center">清空点名册吗？</h2>
+				<div class="text-center">
+					<p>清空点名册会移除所有已订阅该课程的学生，建议仅在学期结束后清空！</p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="clear-confirm" class="btn btn-red" data-dismiss="modal">确认
 				</button>
 				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">取消
 				</button>
@@ -163,6 +195,23 @@
 		}
 	})
 	});
+	</script>
+
+	<!--清空点名册-->
+	<script>
+	$("#btn-clear").click(function(){
+		$('#modal-clear').modal('show');
+		$("#clear-confirm").click(function(){
+			$.ajax({
+				url:"clear/",
+				type:"GET",
+				headers: { "X-CSRFToken": $.cookie("csrftoken") },
+				success:function(result){
+					location.reload(true);
+				}
+			})
+		})
+	})
 	</script>
 
 	<script src="{% static 'jquery-ui-1.12.1.custom/jquery-ui.min.js' %}"></script>

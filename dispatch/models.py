@@ -58,13 +58,13 @@ class Question(models.Model):
 
 class Answer(models.Model):
     GRADE_CHOICES = (
-        ('0', '待评分'),
-        ('1', '驳回'),
-        ('55', 'C'),
-        ('65', 'B'),
-        ('75', 'A'),
-        ('85', 'A+'),
-        ('95', 'A++'),
+        (0, '待评分'),
+        (1, '驳回'),
+        (55, 'C'),
+        (65, 'B'),
+        (75, 'A'),
+        (85, 'A+'),
+        (95, 'A++'),
     )  # 请与views.py的grade_map同步修改
     user_id = models.ForeignKey(
         User, related_name='Answer_owner', on_delete=models.CASCADE)

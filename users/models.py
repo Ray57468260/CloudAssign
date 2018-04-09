@@ -68,8 +68,8 @@ class User(AbstractUser):
     """
 
     GENDER_CHOICES = (
-        (u'M', u'男'),
-        (u'F', u'女'),
+        (u'Male', u'男'),
+        (u'Female', u'女'),
     )
 
     user_id = models.CharField(_('学号'), max_length=255, primary_key=True, unique=True, help_text=_('Required. 10 characters. Digital only'),

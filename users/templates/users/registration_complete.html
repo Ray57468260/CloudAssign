@@ -2,5 +2,17 @@
 {% load i18n %}
 
 {% block content %}
-<p>你已成功注册，我们将发送账户激活邮件到你的邮箱！</p>
+<div class="col-md-12 text-center">
+	<p>你已成功注册！马上为您跳转到登录界面...</p>
+</div>
 {% endblock %}
+
+{% block javascript %}
+<script>
+	$(document).ready(function(){
+		setTimeout(function(){
+			location.href = "{% url 'users_login' %}";
+		}, 2000)
+	})
+</script>
+{% endblock javascript %}

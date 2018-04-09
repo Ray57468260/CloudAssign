@@ -15,12 +15,12 @@
 				{% if my_courses %}
 					{% for course in my_courses %}
 					<div class="col-sm-12 inner-right-xs inner-top-xs inner-bottom-xs border-bottom-xs">
-					<div class="col-md-6">
+					<div class="col-md-10">
 					<p style="font-weight: bold;"><a href="/dispatch/{{ course.courseID }}/">课程名：{{ course.course }}</a></p>
 					<p style="font-size: 16px;">授课教师：{{ course.teacher.name }}</p>
 					<p style="font-size: 16px;">课程简介：{{ course.intro }}</p>
 					</div>
-					<div class="col-md-6 inner-left-md inner-top-xs" align="right">
+					<div class="col-md-2 inner-left-md inner-top-xs" align="right">
 						<button class="cancel-subs btn btn-small btn-red" value="{{ course.courseID }}">取消订阅</button>
 					</div>
 					</div>

@@ -48,6 +48,8 @@ urlpatterns = [
          course_statistics_count, name='course_statistics_count'),
     path(r'<int:courseID>/statistics/ctrend/',
          course_statistics_ctrend, name='course_statistics_ctrend'),
+    path(r'<int:courseID>/clear/',
+         course_subscription_clear, name='course_subscription_clear,'),
     path(r'<int:courseID>/',
          course_info.as_view(), name='course_info'),
 

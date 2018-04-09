@@ -70,6 +70,8 @@ class exam_draft(Auth, LoginRequiredMixin, View):
             e_dict = json_request['dict']
             e_string = json.dumps(e_dict)
             draft.draft_string = e_string
+            exam = Exam.objects.latest()
+            draft.exam = exam
             draft.save()
             print('完成快照创建！快照id：', draft.id)
             result = {'result': True}
@@ -96,6 +98,7 @@ def exam_auto_generate(request):
                 current_rate = 0
                 flag = False
                 already_me = already[e_type]
+                print('已有试题组合：', already_me)
                 for k in range(0, 100):  # 随机上限100次， 下称百次循环
                     this = {}
                     current_list = []  # 存储当前随机组合
@@ -109,20 +112,25 @@ def exam_auto_generate(request):
                         this[querysets[pickle].id] = querysets[
                             pickle].descri  # 将随机序号映射成实际id
                         current_list.append(str(querysets[pickle].id))
-                    for already_list in already_me:  # 随机组合在已有试题组内进行重复率比较
-                        print('\n%s.th round for %s' % (k + 1, e_type))
-                        print('current_list:', current_list)
-                        print('already_list:', already_list)
-                        current_rate = len(set(current_list) &
-                                           set(already_list)) / count
-                        if current_rate <= float(repeat_rate):
-                            print('success, current_rate:', current_rate)
-                            flag = True  # 成功找到一个组合，设置退出标志
+                    if already_me != []:
+                        print('当前试卷为课程的后续试卷')
+                        for already_list in already_me:  # 随机组合在已有试题组内进行重复率比较
+                            print('\n%s.th round for %s' % (k + 1, e_type))
+                            print('current_list:', current_list)
+                            print('already_list:', already_list)
+                            current_rate = len(set(current_list) &
+                                               set(already_list)) / count
+                            if current_rate <= float(repeat_rate):
+                                print('success, current_rate:', current_rate)
+                                flag = True  # 成功找到一个组合，设置退出标志
+                                break
+                            else:
+                                print('fail, current_rate:', current_rate)
+                                continue
+                        if flag:  # 100次随机任意一次成功，则退出百次循环
                             break
-                        else:
-                            print('fail, current_rate:', current_rate)
-                            continue
-                    if flag:  # 100次随机任意一次成功，则退出百次循环
+                    else:  # 仅当存在已有试题组合时才循环随机
+                        print('当前试卷为课程的首张试卷')
                         break
                 if k == 99:  # 100次随机仍然找不到符合条件，则随机失败， 反之成功，返回试题组合
                     print('\nfail to random:%s \n' % e_type)
@@ -280,7 +288,7 @@ class exam_build(Auth, LoginRequiredMixin, View):
             print('完成试卷创建！试卷id：', exam.id)
             result = {'result': True}
         else:
-            print(exam.errors)
+            print(form.errors)
             result = {'result': False}
         return JsonResponse(result)
 
@@ -598,15 +606,58 @@ def bank_query(request):
             's-answer': case4,
             'blank': case5,
         }
-
-        data = request.body.decode('utf-8')
-        json_request = json.loads(data)
-        courseID = json_request['courseID']
-        e_type = json_request['e_type']
-        keyword = json_request['keyword']
+        print(request.POST)
+        courseID = request.POST['courseID']
+        e_type = request.POST['e_type']
+        keyword = request.POST['keyword']
         items = switch[e_type](courseID, keyword)
         result = list(items)
         return JsonResponse(result, safe=False)
+
+
+@is_teacher
+def bank_query_alter(request, template_name='partials/e_candidate.html'):
+
+    if request.method == 'POST':
+
+        def case1(courseID, keyword):
+            choices = Choice.objects.filter(
+                courseID=courseID, descri__icontains=keyword, is_single=True)
+            return choices
+
+        def case2(courseID, keyword):
+            choices = Choice.objects.filter(
+                courseID=courseID, descri__icontains=keyword, is_single=False)
+            return choices
+
+        def case3(courseID, keyword):
+            judges = Judge.objects.filter(
+                courseID=courseID, descri__icontains=keyword)
+            return judges
+
+        def case4(courseID, keyword):
+            s_answers = S_answer.objects.filter(
+                courseID=courseID, descri__icontains=keyword)
+            return s_answers
+
+        def case5(courseID, keyword):
+            blanks = Blank.objects.filter(
+                courseID=courseID, descri__icontains=keyword)
+            return blanks
+
+        switch = {
+            's-choice': case1,
+            'm-choice': case2,
+            'judge': case3,
+            's-answer': case4,
+            'blank': case5,
+        }
+
+        courseID = request.POST['courseID']
+        e_type = request.POST['e_type']
+        keyword = request.POST['keyword']
+        items = switch[e_type](courseID, keyword)
+        return render(request, template_name, {'items': items, 'e_type': e_type})
 
 
 @is_teacher
@@ -674,6 +725,7 @@ def bank_add(request, e_type):
             's-answer': case4,
             'blank': case5,
         }
+        print(request.POST)
         form = switch[e_type]()
         if form.is_valid():
             form.save()
