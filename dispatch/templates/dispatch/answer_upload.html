@@ -204,9 +204,9 @@
 	<script>
 	function autofill(){
 		$('#id_user_id').val({{ request.user.user_id}});
-		var url = document.location.toString();
-		var url_slice = url.split('/');
-		var questionID = url_slice[url_slice.length-3]
+		var url = document.location.toString(),
+			url_slice = url.split('/'),
+			questionID = url_slice[url_slice.length-3];
 		console.log(questionID)
 		$('#id_questionID').val(questionID);
 	}
@@ -219,8 +219,8 @@
 	    {
 	        $(".myFileUpload").change(function()
 	        {
-	            var arrs=$(this).val().split('\\');
-	            var filename=arrs[arrs.length-1];
+	            var arrs=$(this).val().split('\\'),
+	            	filename=arrs[arrs.length-1];
 	            $(".show").html(filename);
 	        });
 	    });
@@ -258,8 +258,8 @@
 	<script>
 	$(".delete-btn").click(function(){
 	event.preventDefault();
-	var pk= $(this).val();
-	var data = {
+	var pk= $(this).val(),
+		data = {
             'pk': pk,
         };
 	$('#modal-delete').modal('show');

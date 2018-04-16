@@ -104,9 +104,9 @@
 	<script>
 	function autofill(){
 		$('#id_teacher').val({{ request.user.user_id }});
-		var date = new Date();
-		var year = date.getFullYear();
-		var ran = Math.floor(Math.random()*(9999-1000)+1000);
+		var date = new Date(),
+			year = date.getFullYear(),
+			ran = Math.floor(Math.random()*(9999-1000)+1000);
 		$('#id_courseID').val(year+''+ran);
 	}
 	autofill()

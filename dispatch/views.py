@@ -76,9 +76,7 @@ class answer_upload(LoginRequiredMixin, View):
             if form.is_valid():
                 print(request.POST['questionID'])
                 result = {'is_valid': True}
-                form.save()
-                answer = Answer.objects.select_related(
-                    'questionID', 'questionID__courseID', 'questionID__courseID__teacher').latest()
+                answer = form.save()
                 teacher = answer.questionID.courseID.teacher
                 UserObjectPermission.objects.assign_perm(
                     'delete_answer', request.user, obj=answer)
@@ -90,7 +88,8 @@ class answer_upload(LoginRequiredMixin, View):
                 print(form.errors)
             return JsonResponse(result)
         else:
-            pass
+            result = {'result': 'question closed'}
+            return JsonResponse(result)
 
 
 @login_required
@@ -180,7 +179,8 @@ class question_publish(Auth, LoginRequiredMixin, View):
         form = QuestionForm()
         questions_query = Question.objects.filter(
             courseID=courseID)
-        number = questions_query.count()  # 统计当前课程下已发布的问题数，方便创建新问题时进行编号；有bug，因此具体实现还是用随机数
+        # 统计当前课程下已发布的问题数，方便创建新问题时进行编号；当作业删除后再新建易冲突，因此具体实现还是用随机数
+        number = questions_query.count()
         return render(request, 'dispatch/question_publish.html', {'form': form, 'courseID': courseID, 'questions_query': questions_query, 'number': number})
 
     def post(self, request, courseID):
@@ -215,7 +215,6 @@ class question_review(Auth, LoginRequiredMixin, View):
                 questionID=questionID).order_by('created_at')
         except Question.DoesNotExist:
             question = False
-        print(answers[1].get_grade_display())
         return render(request, 'dispatch/question_review.html', {'course': course, 'question': question, 'answers': answers})
 
     @method_decorator(permission_required('change_answer',
@@ -226,7 +225,6 @@ class question_review(Auth, LoginRequiredMixin, View):
         grade = int(request.POST['grade'])
         suggestions = request.POST['suggestions']
         answer = Answer.objects.get(id=answer_id)
-        print(type(grade))
         if grade == 1:
             answer.accepted = False
         else:

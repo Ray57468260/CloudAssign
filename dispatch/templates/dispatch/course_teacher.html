@@ -123,7 +123,8 @@ $(function(){
     			$("#"+courseID).append("<p style=\"font-family:Microsoft YaHei;\">未发布任何作业</p>")
     		}else{
     			$.each(questions_json, function(i, item){
-    				$("#"+item.fields.courseID).append(
+    				var $questions = $("#"+item.fields.courseID);
+    				$questions.append(
     					"<div class=\"col-md-6\" style=\"margin-top: 10px;\"><span class=\"fa fa-arrow-circle-right\"></span><span style=\"font-family:Microsoft YaHei; margin-left: 10px;\"><a href=\"/dispatch/"+item.fields.courseID+"/"+item.pk+"/review\">"+item.fields.subject+"</a></span></div>"
     					);
     				$(".fa-spin."+item.fields.courseID).remove();

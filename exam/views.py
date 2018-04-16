@@ -430,13 +430,16 @@ def exam_retrieve(request):
 
 
 class bank_manage(Auth, LoginRequiredMixin, View):
+    """
+    GET方法返回课程列表，POST方法用于批量删除试题
+    """
 
     def get(self, request):
         courses = Course.objects.filter(
             teacher=request.user.user_id).values('courseID', 'course')
         return render(request, 'bank_manage.html', {'courses': courses})
 
-    def post(delf, request):
+    def post(self, request):
         if request.method == 'POST':
 
             def case1(e_list):

@@ -93,7 +93,7 @@
 									<input type="text" data-type="s-answer" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
 								</div>
 								<div class="form-group" style="margin: 10px">
-									<label>查重率上限：</label>
+									<label>重复率上限：</label>
 									<select id="repeat-rate" name="repeat-rate" style="margin-bottom: 0px; height:33px;">
 										<option value="0.1">10%</option>
 										<option value="0.2">20%</option>
@@ -289,7 +289,8 @@ jQuery.translate = function(e_type){
 jQuery.e_add = function(e_type, id, descri){
 			$("#"+e_type).parent().siblings(".drop-help").remove();
 			$("#"+e_type).parent().siblings("div").show();
-			$("#"+e_type).parent().nextAll("button").before("<div class=\"col-md-12 border\" style=\"padding: 5px; margin-bottom: 10px;\"><div class=\"col-md-1\" style=\"\"><span class=\"e-del fa fa-lg fa-close\" style=\"cursor: pointer; color: #d9534f;\"></span></div><div class=\"col-md-11 text-left\" style=\"padding: 0px;\"><a class=\"e-view\" href=\"\" data-toggle=\"modal\" data-id=\""+id+"\" data-type=\""+e_type+"\"><p style=\"font-size: 14px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">"+descri+"</p></a></div></div>")
+			$addE = $("#"+e_type).parent().nextAll("button");
+			$addE.before("<div class=\"col-md-12 border\" style=\"padding: 5px; margin-bottom: 10px;\"><div class=\"col-md-1\" style=\"\"><span class=\"e-del fa fa-lg fa-close\" style=\"cursor: pointer; color: #d9534f;\"></span></div><div class=\"col-md-11 text-left\" style=\"padding: 0px;\"><a class=\"e-view\" href=\"\" data-toggle=\"modal\" data-id=\""+id+"\" data-type=\""+e_type+"\"><p style=\"font-size: 14px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">"+descri+"</p></a></div></div>")
 };
 
 //保存草稿
@@ -480,16 +481,21 @@ $("#next-step").click(function(){
 		});
 	})
 	if ($.isEmptyObject(dict) == false){
-		$(this).parent().after("<div id=\"generating\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin fa-lg\"></span><span>&nbsp;&nbsp;请稍等，处理中...</span></div>")
+		$generating = $(this).parent();
+		$generating.after("<div id=\"generating\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin fa-lg\"></span><span>&nbsp;&nbsp;请稍等，处理中...</span></div>")
 	
 		$("#point-distrib").empty();
 		console.log(dict)
 		$.each(dict, function(e_type, item){
 			jQuery.translate(e_type);
-			$("#point-distrib").append("<div class=\"col-md-12\"><h3 data-id="+e_type+" class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
+			$distrib = $("#point-distrib");
+			$distrib.append("<div class=\"col-md-12\"><h3 data-id="+e_type+" class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
+			$distribList = $("#point-distrib-footer"+e_type);
+			var eList = [];
 			$.each(item, function(e_id, descri){
-		    	$("#point-distrib-footer"+e_type).before("<div class=\"col-md-12\" style=\"font-size: 14px;\"><span>分值：<input type=\"text\" class=\"e-point\"  style=\"height: 25px; width: 50px; margin-bottom: 0px; margin-right: 10px;\" data-id=\""+e_id+"\" class=\"form-control\" oninput=\"CalPoint()\"/></span><span>"+descri+"</span></div>")
-			})
+				eList += "<div class=\"col-md-12\" style=\"font-size: 14px;\"><span>分值：<input type=\"text\" class=\"e-point\"  style=\"height: 25px; width: 50px; margin-bottom: 0px; margin-right: 10px;\" data-id=\""+e_id+"\" class=\"form-control\" oninput=\"CalPoint()\"/></span><span>"+descri+"</span></div>"
+			});
+			$distribList.html(eList);
 		})
 		$("#generating").remove();
 		$("#modal-point-distrib").modal('show');
@@ -529,16 +535,16 @@ function CalPoint(){
 				dict[e_type][e_id] = point;
 			})
 		});
-		var courseID = $("#id_courseID").val();
-		var title = $("#id_title").val();
-		var intro = $("#id_intro").val();
-		var data = {
+		var courseID = $("#id_courseID").val(),
+			title = $("#id_title").val(),
+			intro = $("#id_intro").val(),
+			data = {
 			'courseID': courseID,
 			'title': title,
 			'intro': intro,
 			dict,
-		}
-		var json = JSON.stringify(data)
+		},
+			json = JSON.stringify(data);
 		//上传试卷
 		$.ajax({
 		    url: "{% url 'exam_build' %}",
@@ -578,11 +584,11 @@ $(document).on("click", ".e-view", function(){
 	    headers: { "X-CSRFToken": $.cookie("csrftoken") },
 	    data: data,
 	    success: function(result){
-    		$("#item-content-min").empty();
-    		data = JSON.parse(result);
-    		console.log(data);
-	    	$.each(data[0], function(i, item){
-	    		$("#item-content-min").append("<h4>"+i+"："+item+"</h4>")
+	    	var $modal = $("#item-content-min");
+    		$modal.empty();
+    		console.log(result);
+	    	$.each(result[0], function(i, item){
+	    		$modal.append("<h4>"+i+"："+item+"</h4>")
 	    	});
 	    	$("#modal-utli-min").modal('show');
 	    }

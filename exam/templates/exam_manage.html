@@ -128,12 +128,13 @@
 <script>
 	$(".exam-add").click(function(){
 		var title = $(this).data("title"),
-			exam_id = $(this).val();
-		$("#exam-info").empty();
-		$("#exam-info").append("<p>您选择的试卷：</p><h1>"+title+"</h1>");
+			exam_id = $(this).val(),
+			$examInfo = $("#exam-info");
+		$examInfo.empty();
+		$examInfo.append("<p>您选择的试卷：</p><h1>"+title+"</h1>");
 		$("#exam-generate").click(function(){
-			$("#exam-info").empty();
-	    	$("#exam-info").append("<div id=\"writing\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在为您生成文档，请稍等...</span></div>")
+			$examInfo.empty();
+	    	$examInfo.append("<div id=\"writing\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在为您生成文档，请稍等...</span></div>")
 			var format = $(this).parent().prev().find(".btn.active").val();
 			data = {
 				'exam_id': exam_id,
@@ -146,8 +147,8 @@
 			    data: data,
 			    success:function(result){
 			    	console.log(result)
-			    	$("#exam-info").empty();
-			    	$("#exam-info").append("已为您生成：<br /><br /><a href=/"+result['path']+" style=\"font-weight: bold;\"><span class=\"fa fa-file-text-o fa-2x\">&nbsp;&nbsp;</span>"+result['title']+"</a>");
+			    	$examInfo.empty();
+			    	$examInfo.append("已为您生成：<br /><br /><a href=/"+result['path']+" style=\"font-weight: bold;\"><span class=\"fa fa-file-text-o fa-2x\">&nbsp;&nbsp;</span>"+result['title']+"</a>");
 			    }
 			});
 		})
