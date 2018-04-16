@@ -18,27 +18,17 @@
 }
 
 .modal-container {
-  width: 300px;
+/*  width: 300px;
+*/
   margin: 0px auto;
   padding: 20px 30px;
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
   transition: all .3s ease;
-  font-family: Helvetica, Arial, sans-serif;
-}
+/*  font-family: Helvetica, Arial, sans-serif;
+ */
 
-.modal-header h3 {
-  margin-top: 0;
-  color: #42b983;
-}
-
-.modal-body {
-  margin: 20px 0;
-}
-
-.modal-default-button {
-  float: right;
 }
 
 /*
@@ -78,7 +68,7 @@ li {
 	font-size: 16px;
 }
 </style>
-<div class="col-md-3 inner-bottom-sm mobile-hide">
+<div id="sidenav" class="col-md-3 inner-bottom-sm mobile-hide">
 
 	<div class="col-md-12 border-top text-center inner-top-xs inner-bottom-xs">
 		{% if request.user.is_teacher %}
@@ -88,19 +78,19 @@ li {
 		{% endif %}
 		<div class="col-md-12 border" style="margin-top:20px; padding:0px;">
 			<div class="col-md-6 border-right" style="padding:8px;">
-				<a id="new-questions" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-question-circle-o fa-lg"></span>&nbsp;最新作业</a>
+				<a href="javascript:void(0)" @click="newQuestionShow" style="font-size:80%;"><span class="fa fa-question-circle-o fa-lg"></span>&nbsp;最新作业</a>
 			</div>
 			<div class="col-md-6" style="padding:8px;">
-				<a id="new-answers" data-toggle="modal" href="#modal-new" style="font-size:80%;"><span class="fa fa-upload fa-lg"></span>&nbsp;最新提交</a>
+				<a href="javascript:void(0)" @click="newAnswerShow" style="font-size:80%;"><span class="fa fa-upload fa-lg"></span>&nbsp;最新提交</a>
 			</div>
 		</div>
 	</div>
 
 	<div class="col-md-12 inner-bottom-xs">
 		<h3 class="sidelines text-center"><span>作业提醒</span></h3>
-		<p align="center"><a id="unfinished-link" data-toggle="modal" href="#modal-utli">未完成的作业<span id="unfinished-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
-		<p align="center"><a id="warning-link" data-toggle="modal" href="#modal-utli">明天晚上截至的作业<span id="warning-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
-		<p align="center"><a id="rejected-link" data-toggle="modal" href="#modal-utli">被驳回的答案<span id="rejected-bad" class="badge" style="background-color:#f27a24; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a href="javascript:void(0)" @click="unfinishedShow">未完成的作业<span id="unfinished-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a href="javascript:void(0)" @click="warningShow">明天晚上截至的作业<span id="warning-bad" class="badge" style="background-color:#d9534f; margin-top:-3px; margin-left:5px"></span></a></p>
+		<p align="center"><a href="javascript:void(0)" @click="rejectedShow">被驳回的答案<span id="rejected-bad" class="badge" style="background-color:#f27a24; margin-top:-3px; margin-left:5px"></span></a></p>
 	</div>
 
 	<div class="col-md-12 border-bottom">
@@ -118,79 +108,9 @@ li {
 		<li style="margin:5px;"><span class="fa-li fa fa-street-view" style="margin-top:4px; margin-left:-3px;"></span>学&#12288;院：{{ request.user.dept }}</li>
 		<li style="margin:5px;"><span class="fa-li fa fa-clock-o" style="margin-top:4px; margin-left:-3px;"></span>上次登录：<br />{{ request.user.last_login }}</li>
 		</ul>
-		{% if request.user.is_staff %}
-		<div class="text-center inner-bottom-xs">
-			<button id="shift" class="btn btn-navy">切换权限</button>
-		</div>
-		{% endif %}
 	</div>
-</div>
-
-<!-- app -->
-<div id="app">
-  <button id="show-modal" @click="rejectedShow">Show Modal</button>
-  <modal v-if="showModal" @close="showModal = false">
-    <h3 slot="header">custom header</h3>
+  <modal v-if="showModal" @close="showModal = false" :list="list" :has_ddl="has_ddl">
   </modal>
-</div>
-
-<!-- 模态框（Modal） -->
-<div class="modal fade" id="modal-new" tabindex="-1" role="dialog" aria-labelledby="modal-new" aria-hidden="true" style="display:none;">
-	<div class="modal-dialog modal-xs">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-					&times;
-					<span aria-hidden="true">
-						<i class="icon-cancel-1"></i>
-					</span>
-				</button>
-				<h4 class="modal-title" id="modal-new">
-					最新的作业
-				</h4>
-			</div>
-			<div class="modal-body">
-				<div class="text-center" style="font-family:Microsoft Yahei;">
-					<h2 id="new">最近7天发布的作业</h2>
-					<ul id="new-list">
-						
-					</ul>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
-				</button>
-			</div>
-		</div><!-- /.modal-content -->
-	</div><!-- /.modal -->
-</div>
-
-<div class="modal fade" id="modal-utli" tabindex="-1" role="dialog" aria-labelledby="modal-utli" aria-hidden="true" style="display:none;">
-	<div class="modal-dialog modal-xs">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-					&times;
-					<span aria-hidden="true">
-						<i class="icon-cancel-1"></i>
-					</span>
-				</button>
-				<h4 class="modal-title" id="modal-utli">
-					通用模态消息
-				</h4>
-			</div>
-			<div class="modal-body">
-				<div class="text-center">
-					<h2 id="item-title">仍未提交答案的作业</h2>
-					<ul id="item-list" style="font-family:Microsoft Yahei;"></ul>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="close-btn btn btn-default" data-dismiss="modal">关闭
-				</button>
-			</div>
-		</div><!-- /.modal-content -->
-	</div><!-- /.modal -->
 </div>
 
 <!-- template for the modal component -->
@@ -198,25 +118,33 @@ li {
   <transition name="modal">
     <div class="modal-mask">
       <div class="modal-wrapper">
-        <div class="modal-container">
+        <div class="modal-dialog modal-xs modal-container">
 
           <div class="modal-header">
             <slot name="header">
-              default header
+              通用模态窗
             </slot>
           </div>
 
           <div class="modal-body">
             <slot name="body">
-              default body
+            	<ul style="font-family:Microsoft Yahei;">
+            		<li v-for="item in list" class="text-center">
+            			<a :href="'/dispatch/'+item.courseID+'/'+item.questionID+'/upload'" style="font-weight:bold">题目：{% verbatim %}{{ item.subject }}{% endverbatim %}</a>
+            			<br />
+            			<p style="margin: 0px;">发布日期：{% verbatim %}{{ item.created_at }}{% endverbatim %}</p>
+            			<p v-if="!has_ddl">成绩：{% verbatim %}{{ item.grade }}{% endverbatim %}</p>
+            			<p v-if="has_ddl">截止日期：{% verbatim %}{{ item.ddl }}{% endverbatim %}</p>
+            			<br>
+            		</li>
+            	</ul>
             </slot>
           </div>
 
           <div class="modal-footer">
             <slot name="footer">
-              default footer
-              <button class="modal-default-button" @click="$emit('close')">
-                OK
+              <button class="btn btn-small" @click="$emit('close')">
+                确认
               </button>
             </slot>
           </div>
@@ -238,31 +166,69 @@ Vue.component('modal', {
   template: '#modal-template',
   data: function(){
   	return{
-  		Lish: '',
   	}
   },
-  created(){
-
-  },
+  props: ['list', 'has_ddl', 'has_grade'],
   methods:{},
 })
 
 // start app
 new Vue({
-  el: '#app',
+  el: '#sidenav',
   data: {
 	showModal: false,
-	rejectedList: '',
+	has_grade: true,
+	has_ddl: !this.has_grade,
+	rejectedList: [],
+	warningList: [],
+	unfinishedList: [],
+	newQuestionList: [],
+	newAnswerList: [],
+	list: [],
   },
   created(){
-	let url = "{% url 'query_questions_rejected' %}",
-		user_id = "{{ request.user.user_id }}",
-		formData = new FormData(),
-		csrftoken = $.cookie("csrftoken");
+	let csrftoken = $.cookie("csrftoken"),
+		formData = new FormData();
+	//查询最近七天发布的作业数
+	let urlNewQ = "{% url 'query_newquestions' %}";
+	axios({
+			method: 'POST',
+			url: urlNewQ,
+  			headers: {'X-CSRFToken': csrftoken},
+			data: formData,
+	})
+	.then(function(response){
+		$.each(response.data, function(i, item){
+			this.newQuestionList.push(item['questionID'])
+		}.bind(this))
+	}.bind(this))
+	.catch(function(error){
+		console.log(error)
+	});
+	//查询最近七个答案
+	let urlNewA = "{% url 'query_newanswers' %}";
+	axios({
+			method: 'POST',
+			url: urlNewA,
+  			headers: {'X-CSRFToken': csrftoken},
+			data: formData,
+	})
+	.then(function(response){
+		console.log(response)
+		$.each(response.data, function(i, item){
+			this.newAnswerList.push(item)
+		}.bind(this))
+	}.bind(this))
+	.catch(function(error){
+		console.log(error)
+	});
+  	//查询驳回的作业数
+	let urlRejected = "{% url 'query_questions_rejected' %}",
+		user_id = "{{ request.user.user_id }}";
 	formData.append('user_id', user_id);
 	axios({
 			method: 'POST',
-			url: url,
+			url: urlRejected,
   			headers: {'X-CSRFToken': csrftoken},
 			data: formData,
 	})
@@ -270,223 +236,170 @@ new Vue({
 		let $badge = $("#rejected-bad");
 		$badge.text(response.data.length)
 		$.each(response.data, function(i, item){
-			this.rejectedList += item['questionID']
+			this.rejectedList.push(item['questionID'])
 		console.log(this.rejectedList)
 		}.bind(this))
 	}.bind(this))
 	.catch(function(error){
 		console.log(error)
+	});
+	//查询临近截至的作业数
+	let urlWarning = "{% url 'query_questions_in_warning' %}";
+	axios({
+			method: 'POST',
+			url: urlWarning,
+  			headers: {'X-CSRFToken': csrftoken},
+			data: formData,
 	})
+	.then(function(response){
+		let $badge = $("#warning-bad");
+		$badge.text(response.data.length)
+		$.each(response.data, function(i, item){
+			this.warningList.push(item['questionID'])
+		console.log(this.warningList)
+		}.bind(this))
+	}.bind(this))
+	.catch(function(error){
+		console.log(error)
+	});
+	//查询未完成的作业数
+	let urlUnfinished = "{% url 'query_questions_unfinished' %}";
+	axios({
+			method: 'POST',
+			url: urlUnfinished,
+  			headers: {'X-CSRFToken': csrftoken},
+			data: formData,
+	})
+	.then(function(response){
+		let $badge = $("#unfinished-bad");
+		$badge.text(response.data.length)
+		$.each(response.data, function(i, item){
+			this.unfinishedList.push(item['questionID'])
+		console.log(this.unfinishedList)
+		}.bind(this))
+	}.bind(this))
+	.catch(function(error){
+		console.log(error)
+	});
   },
   methods:{
   	rejectedShow: function(){
+  		this.list = [];
+  		$.each(this.rejectedList, function(i, questionID){
+  			let url = "{% url 'retrive_rejected' %}",
+				formData = new FormData(),
+				csrftoken = $.cookie("csrftoken");
+				formData.append('questionID', questionID);
+
+  			axios({
+  				method: 'POST',
+  				url: url,
+  				headers: {'X-CSRFToken': csrftoken},
+  				data: formData,
+  			})
+  			.then(function(response){
+  				this.list.push(response.data)
+  				console.log(response)
+  			}.bind(this))
+  		}.bind(this))
+  		this.has_ddl = true
+  		this.has_grade = !this.ddl
+  		this.showModal = true
+  	},
+  	warningShow: function(){
+  		this.list = [];
+  		$.each(this.warningList, function(i, questionID){
+  			let url = "{% url 'retrive_warning' %}",
+				formData = new FormData(),
+				csrftoken = $.cookie("csrftoken");
+				formData.append('questionID', questionID);
+
+  			axios({
+  				method: 'POST',
+  				url: url,
+  				headers: {'X-CSRFToken': csrftoken},
+  				data: formData,
+  			})
+  			.then(function(response){
+  				this.list.push(response.data)
+  				console.log(response)
+  			}.bind(this))
+  		}.bind(this))
+  		this.has_ddl = true
+  		this.has_grade = !this.ddl
+  		this.showModal = true
+  	},
+  	unfinishedShow: function(){
+  		this.list = [];
+  		$.each(this.unfinishedList, function(i, questionID){
+  			let url = "{% url 'retrive_unfinished' %}",
+				formData = new FormData(),
+				csrftoken = $.cookie("csrftoken");
+				formData.append('questionID', questionID);
+
+  			axios({
+  				method: 'POST',
+  				url: url,
+  				headers: {'X-CSRFToken': csrftoken},
+  				data: formData,
+  			})
+  			.then(function(response){
+  				this.list.push(response.data)
+  				console.log(response)
+  			}.bind(this))
+  		}.bind(this))
+  		this.has_ddl = true
+  		this.has_grade = !this.ddl
+  		this.showModal = true
+  	},
+  	newQuestionShow: function(){
+  		this.list = [];
+  		$.each(this.newQuestionList, function(i, questionID){
+  			let url = "{% url 'retrive_newquestions' %}",
+				formData = new FormData(),
+				csrftoken = $.cookie("csrftoken");
+				formData.append('questionID', questionID);
+
+  			axios({
+  				method: 'POST',
+  				url: url,
+  				headers: {'X-CSRFToken': csrftoken},
+  				data: formData,
+  			})
+  			.then(function(response){
+  				this.list.push(response.data)
+  				console.log(response)
+  			}.bind(this))
+  		}.bind(this))
+  		this.has_ddl = true
+  		this.has_grade = !this.ddl
+  		this.showModal = true
+  	},
+  	newAnswerShow: function(){
+  		this.list = [];
+  		console.log(this.newAnswerList)
+  		$.each(this.newAnswerList, function(i, answerID){
+  			let url = "{% url 'retrive_newanswers' %}",
+				formData = new FormData(),
+				csrftoken = $.cookie("csrftoken");
+				formData.append('answerID', answerID);
+
+  			axios({
+  				method: 'POST',
+  				url: url,
+  				headers: {'X-CSRFToken': csrftoken},
+  				data: formData,
+  			})
+  			.then(function(response){
+  				console.log(response)
+  				this.list.push(response.data)
+  				console.log(response)
+  			}.bind(this))
+  		}.bind(this))
+  		this.has_ddl = false
+  		this.has_grade = !this.ddl
   		this.showModal = true
   	},
   }
 })
-</script>
-
-{#权限切换#}
-<script>
-	$("#shift").click(function(){
-		$.ajax({
-			url: "/accounts/shift/",
-			type: "POST",
-    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
-    		success:function(result){
-    			location.reload(true);
-    		},
-
-		});
-	});
-</script>
-
-
-{#取回最新的作业#}
-<script>
-	$("#new-questions").click(function(){
-		var user_id = {{ request.user.user_id }};
-		var data = {'user_id':user_id};
-		$.ajax({
-				url:"/dispatch/query/newquestions/",
-				type:"POST",
-	    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
-	    		data:data,
-	    		success:function(result){
-	    			console.log(result)
-	    		
-	    			if (result.length == 0){
-	    				$("#new").text("最近7天没有发布作业")
-						$("#new-list").empty();	
-	    			}else{
-	    				$("#new").text("最近7天发布的作业")
-						$("#new-list").empty();
-
-	    				$.each(result, function(i, item){
-	    					var data = {'questionID': item.questionID}
-	    					
-		    				$.ajax({
-		    					url:"/dispatch/retrive/newquestions/",
-		    					type:"POST",
-		    					headers:{"X-CSRFToken":$.cookie("csrftoken")},
-		    					data:data,
-		    					success:function(result){
-		    						$("#new-list").append("<li><a href=\"/dispatch/"+result['courseID']+"/"+result['questionID']+"/upload/\" style=\"font-weight:bold;\">作业题目："+result['subject']+"</a><p style=\"font-size:15px;\">发布日期："+result['created_at']+"<br />截至日期："+result['ddl']+"</p></li><br />");
-		    					}
-		    				})
-	    				})
-	    			}
-	    		}
-
-		});
-	})
-</script>
-
-{#取回最新提交的答案#}
-<script>
-	$("#new-answers").click(function(){
-		var user_id = {{ request.user.user_id }};
-		var data = {'user_id':user_id};
-		var url = "/dispatch/query/newanswers/";
-		var csrftoken = $.cookie("csrftoken");
-		$("#new").text("最近7个提交的答案")
-		$("#new-list").load(url, {'csrfmiddlewaretoken': csrftoken, 'data': data});
-	})
-</script>
-
-{#取回未完成的作业#}
-<script>
-	$(document).ready(function(){
-		var user_id = {{ request.user.user_id }};
-		var data = {'user_id':user_id};
-		$.ajax({
-				url:"/dispatch/query/unfinished/",
-				type:"POST",
-	    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
-	    		data:data,
-	    		success:function(result){
-	    			if (result['result'] == false){
-	    				$("#unfinished-bad").text(0)	
-	    			}else{
-	    				$("#unfinished-bad").text(result.length);
-	    				$("#unfinished-link").click(function(){
-	    					$("#item-title").text("仍未提交答案的作业");
-    						$("#item-list").empty();
-
-		    				$.each(result, function(i, item){
-		    					var data = {'questionID': item.questionID}
-		    					
-			    				$.ajax({
-			    					url:"/dispatch/retrive/unfinished/",
-			    					type:"POST",
-			    					headers:{"X-CSRFToken":$.cookie("csrftoken")},
-			    					data:data,
-			    					success:function(result){
-			    						$("#item-list").append("<li><a href=\"/dispatch/"+result['courseID']+"/"+result['questionID']+"/upload/\" style=\"font-weight:bold;\">作业题目："+result['subject']+"</a><p style=\"font-size:15px;\">截至日期："+result['ddl']+"</p></li><br />");
-			    					}
-			    				})
-		    				})
-	    				})
-	    			}
-	    		}
-
-		});
-	})
-</script>
-
-{#取回临近截至的作业#}
-<script>
-	$(document).ready(function(){
-		var user_id = {{ request.user.user_id }};
-		var data = {'user_id':user_id};
-		$.ajax({
-				url:"/dispatch/query/warning/",
-				type:"POST",
-	    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
-	    		data:data,
-	    		success:function(result){
-	    		
-	    			if (result['result'] == false){
-	    				$("#warning-bad").text(0)	
-	    			}else{
-	    				$("#warning-bad").text(result.length);
-	    				$("#warning-link").click(function(){
-	    					$("#item-title").text("明天晚上12点截至的作业");
-    						$("#item-list").empty();
-
-		    				$.each(result, function(i, item){
-		    					var data = {'questionID': item.questionID}
-		    					
-			    				$.ajax({
-			    					url:"/dispatch/retrive/warning/",
-			    					type:"POST",
-			    					headers:{"X-CSRFToken":$.cookie("csrftoken")},
-			    					data:data,
-			    					success:function(result){
-			    						$("#item-list").append("<li><a href=\"/dispatch/"+result['courseID']+"/"+result['questionID']+"/upload/\" style=\"font-weight:bold;\">作业题目："+result['subject']+"</a><p style=\"font-size:15px;\">截至日期："+result['ddl']+"</p></li><br />");
-			    					}
-			    				})
-		    				})
-	    				})
-	    			}
-	    		}
-
-		});
-	})
-</script>
-
-{#取回答案被驳回的作业#}
-<script>
-	$(document).ready(function(){
-		var user_id = {{ request.user.user_id }};
-		var data = {'user_id':user_id};
-		$.ajax({
-				url:"/dispatch/query/rejected/",
-				type:"POST",
-	    		headers: { "X-CSRFToken": $.cookie("csrftoken") },
-	    		data:data,
-	    		success:function(result){
-	    		
-	    			if (result['result'] == false){
-	    				$("#rejected-bad").text(0);	
-	    			}else{
-	    				localStorage.rejected = result;
-	    				$("#rejected-bad").text(result.length);
-	    				$("#rejected-link").click(function(){
-	    					$("#item-title").text("以下作业的答案被教师驳回");
-    						$("#item-list").empty();
-
-		    				$.each(result, function(i, item){
-		    					var data = {'questionID': item.questionID}
-		    					
-			    				$.ajax({
-			    					url:"/dispatch/retrive/rejected/",
-			    					type:"POST",
-			    					headers:{"X-CSRFToken":$.cookie("csrftoken")},
-			    					data:data,
-			    					success:function(result){
-			    						$("#item-list").append("<li><a href=\"/dispatch/"+result['courseID']+"/"+result['questionID']+"/upload/\" style=\"font-weight:bold;\">作业题目："+result['subject']+"</a><p style=\"font-size:15px;\">截至日期："+result['ddl']+"</p></li><br />");
-			    					}
-			    				})
-		    				})
-		    			//查看消息后隐藏数字，刷新后重现
-		    			localStorage.rejectedcheck = true;
-		    			$("#rejected-bad").text(null);
-	    				})
-	    			}
-	    		}
-
-		});
-	})
-</script>
-
-<script>
-if (localStorage.rejectedcheck)
-	{
-	localStorage.rejectedcheck = true;
-	}
-else
-	{
-	localStorage.rejectedcheck = false;	
-	}
 </script>

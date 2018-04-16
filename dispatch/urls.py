@@ -89,6 +89,8 @@ urlpatterns = [
 
     path(r'retrive/newquestions/', retrive_newquestions,
          name='retrive_newquestions'),
+    path(r'retrive/newanswers/', retrive_newanswers,
+         name='retrive_newanswers'),
     path(r'retrive/unfinished/', retrive_unfinished, name='retrive_unfinished'),
     path(r'retrive/warning/', retrive_warning, name='retrive_warning'),
     path(r'retrive/rejected/', retrive_rejected, name='retrive_rejected'),

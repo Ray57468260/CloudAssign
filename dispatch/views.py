@@ -669,9 +669,29 @@ def query_newanswers(request):
     """
     if request.method == 'POST':
         # 设置筛选条件
+        answers_list = []
         answers = Answer.objects.filter(
             user_id=request.user.user_id).order_by('-created_at')[:7]
-        return render(request, 'partials/newanswers_modal.html', {'answers': answers})
+        if answers.exists():
+            for a in answers:
+                answers_list.append(a.id)
+        else:
+            pass
+        return JsonResponse(answers_list, safe=False)
+
+
+@login_required
+def retrive_newanswers(request):
+    """
+    模态窗取回最近七个作业，实现：根据请求的data中的answerID取出Answer实例
+    """
+    if request.method == 'POST':
+        answerID = request.POST['answerID']
+        answer = Answer.objects.select_related(
+            'questionID').get(id=answerID)
+        result = {'subject': answer.subject, 'grade': answer.get_grade_display(
+        ), 'created_at': answer.created_at}
+        return JsonResponse(result)
 
 
 @login_required
@@ -766,7 +786,7 @@ def retrive_unfinished(request):
         question = Question.objects.select_related(
             'courseID').get(questionID=questionID)
         result = {'courseID': question.courseID.courseID, 'questionID': question.questionID, 'subject': question.subject,
-                  'content': question.content, 'ddl': question.ddl}
+                  'content': question.content, 'ddl': question.ddl, 'created_at': question.created_at}
         return JsonResponse(result)
 
 
@@ -780,7 +800,7 @@ def retrive_warning(request):
         question = Question.objects.select_related(
             'courseID').get(questionID=questionID)
         result = {'courseID': question.courseID.courseID, 'questionID': question.questionID, 'subject': question.subject,
-                  'content': question.content, 'ddl': question.ddl}
+                  'content': question.content, 'ddl': question.ddl, 'created_at': question.created_at}
         return JsonResponse(result)
 
 
@@ -794,7 +814,7 @@ def retrive_rejected(request):
         question = Question.objects.select_related(
             'courseID').get(questionID=questionID)
         result = {'courseID': question.courseID.courseID, 'questionID': question.questionID, 'subject': question.subject,
-                  'content': question.content, 'ddl': question.ddl}
+                  'content': question.content, 'ddl': question.ddl, 'created_at': question.created_at}
         return JsonResponse(result)
 
 
