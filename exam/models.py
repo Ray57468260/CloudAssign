@@ -31,6 +31,7 @@ class Choice(models.Model):
     F = models.CharField(_('选项F'), max_length=255, blank=True)
     answer = models.CharField(_('答案'), max_length=4,
                               blank=True, help_text='参考形式：单选：A，多选：ABCD')
+    sec = models.CharField(_('考点'), max_length=255, blank=True)
     point = models.IntegerField(_('分值'), default=0)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 

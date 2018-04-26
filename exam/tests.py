@@ -1,69 +1,78 @@
-#!/usr/bin/python3
-# -*- coding:utf8 -*-
-import docx
-import xlrd
-import xlwt
-import re
-
+import numpy.matlib
+import numpy as np
 """
-题目前后使用{}包装起来；
-选项内部请勿使用空格；
+# sigmoid function
+
+
+def nonlin(x, deriv=False):
+    if(deriv == True):
+        return x * (1 - x)
+    return 1 / (1 + np.exp(-x))
+
+# input dataset
+X = np.array([[0, 0, 1],
+              [0, 1, 1],
+              [1, 0, 1],
+              [1, 1, 1]])
+
+# output dataset
+y = np.array([[0, 0, 1, 1]]).T
+
+# seed random numbers to make calculation
+# deterministic (just a good practice)
+np.random.seed(1)
+
+# initialize weights randomly with mean 0
+syn0 = 2 * np.random.random((3, 1)) - 1
+
+for iter in range(10000):
+    # forward propagation
+    l0 = X
+    l1 = nonlin(np.dot(l0, syn0))
+
+    # how much did we miss?
+    l1_error = y - l1
+
+    # multiply how much we missed by the
+    # slope of the sigmoid at the values in l1
+    l1_delta = l1_error * nonlin(l1, True)
+
+    # update weights
+    syn0 += np.dot(l0.T, l1_delta)
+print("Output After Training:")
+print(l1)
+
+# 章节输入矩阵
+Input = np.array([[1, 1, 1, 1]])
+
+# 目标考点分布矩阵
+Target = np.array([[0.1, 0.2, 0.5, 0.9]])
+
+np.random.seed(1)
+
+# 当前考点分布矩阵
+syn0 = 2 * np.random.random((1, 4)) - 1
+
+for iter in range(1000):
+    # 前向传播
+    l0 = Input
+
+    l1 = nonlin(l0 * syn0)
+
+    # 计算输入迭代后与目标矩阵的差值
+    l1_error = Target - l1
+
+    # nolin计算下降梯度，结果用于计算偏差修正值
+    l1_delta = l1_error * nonlin(l1, True)
+
+    # 修正分布矩阵以“强迫”其接近输出
+    syn0 += l1_delta
+
+print("Output After Training:")
+print(l1)
 """
 
-
-def set_style(name, height, bold=False):
-    style = xlwt.XFStyle()  # 初始化样式
-
-    font = xlwt.Font()  # 为样式创建字体
-    font.name = name
-    font.bold = bold
-    font.color_index = 4
-    font.height = height
-
-    style.font = font
-    return style
-
-
-# 读取模板
-template = 'D:/Downloads/uploadFiles-master/media/单选题_批量导入模板.xls'
-workbook_temp = xlrd.open_workbook(template)
-sheet_temp = workbook_temp.sheet_by_name('Sheet1')
-row0 = sheet_temp.row_values(0)
-print('模板首行：', row0)
-
-# 创建工作簿
-workbook = xlwt.Workbook(encoding='utf-8')
-# 创建sheet
-data_sheet = workbook.add_sheet('Sheet1')
-# 生成第一行
-for i in range(len(row0)):
-    data_sheet.write(0, i, row0[i], set_style(
-        'Microsoft Yahei', 220, False))
-
-file = 'D:/Downloads/uploadFiles-master/media/单选题_预处理题库.docx'
-doc = docx.Document(file)
-text = ''
-for p in doc.paragraphs:
-    p.text = re.sub((r'\w+、 *'), ' ', p.text)  # 替换选项标号和题目标号
-    p.text = re.sub((r' *（ *） *'), '（）', p.text)  # 替换中文带空格括号
-    p.text = re.sub((r' +'), ' ', p.text)  # 替换不间断空格
-    p.text = re.sub((r'\t+'), '', p.text)  # 替换水平制表符(tab)
-    text = text + ' ' + p.text
-es = re.finditer((r"\{(.*?)\}"), text)  # 匹配预处理目标
-
-row = 1
-for match in es:
-    e = match.group(1).split(' ')
-    print('单个试题：', e)
-    col = 0
-    for i in e:
-        if i:
-            data_sheet.write(row, col, i, set_style(
-                'Microsoft Yahei', 220, False))
-            col = col + 1
-        else:
-            print('none exists')
-    row = row + 1
-
-# 保存文件
-workbook.save('D:/Downloads/uploadFiles-master/media/单选题_格式化题库.xls')
+rand = np.zeros(5, dtype=int)
+one = np.ones(2, dtype=int)
+rand[:one.shape[0]] = one
+print(rand.shape)

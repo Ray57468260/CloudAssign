@@ -22,6 +22,8 @@ import re
 import pythoncom
 from win32com import client
 import os
+import numpy.matlib
+import numpy as np
 
 
 def is_teacher(func):
@@ -1083,3 +1085,58 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
             result = {'e_type_name': e_type_name,
                       'path': path, 'errors': errors}
             return JsonResponse(result)
+
+
+def matrix(request):
+    if request.method == 'GET':
+        # 构造试题的id矩阵，保存每行列数用于下面的运算。各行在组成矩阵前需要后补零
+        secs_length = []
+        id_list = []
+        secs = ['一', '二', '三', '四']
+        for sec in secs:
+            choices = Choice.objects.filter(
+                is_single=True, sec=sec).values_list('id', flat=True)
+            id_list.append(list(choices))
+            length = len(choices)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
+        # max_row为章节总数,max_col为拥有最多试题的章节的试题数
+        max_row = len(secs)
+        max_col = max(secs_length)
+        id_matrix = np.zeros((max_row, max_col), dtype=int)
+        for row in range(max_row):
+            id_matrix[row, :len(id_list[row])] = id_list[row]
+        print('试题id矩阵:\n', id_matrix)
+
+        # 考点分布
+        raw = [0.1, 0.3, 0.5, 0.2]
+        # 试题总数
+        count = 7
+        weight = np.array(raw, dtype=float)
+        # 试题分布
+        num = np.floor(weight * count)
+        print('当前分布下的各章节试题数矩阵:\n', num)
+        mask = np.zeros([max_row, max_col], dtype=int)
+        try:
+            for i in range(len(secs_length)):
+                # sec_l为该章节的试题总数
+                sec_l = secs_length[i]
+                # x为该章节需要抽取的试题数
+                x = int(num[i])
+                rand = np.zeros(sec_l, dtype=int)
+                one = np.ones(x, dtype=int)
+                rand[:one.shape[0]] = one
+                np.random.shuffle(rand)
+                print('当前随机行：\n', rand)
+                mask[i, :rand.shape[0]] = rand
+            print('蒙版矩阵:\n', mask)
+            mul = np.extract(mask, id_matrix)
+            print('蒙版结果:\n', mul)
+            print('列表输出：\n', mul.tolist())
+            result = {'result': True}
+        except ValueError as e:
+            result = {'result': '设定试题数过多，请扩充题库或减少试题数'}
+            print(e)
+            print(result)
+        return JsonResponse(result)
