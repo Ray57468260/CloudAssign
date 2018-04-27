@@ -60,162 +60,343 @@ class LoginRequiredMixin(object):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
-class exam_draft(Auth, LoginRequiredMixin, View):
+@is_teacher
+def exam_auto_generate_page(request):
+    """
+    返回随机生成用页面
+    """
+    if request.method == 'POST':
 
-    def post(self, request):
-        data = request.body.decode('utf-8')
-        json_request = json.loads(data)
-        form = DraftForm(data=json_request)
-        print(json_request)
-        if form.is_valid():
-            draft = form.save(commit=False)
-            e_dict = json_request['dict']
-            e_string = json.dumps(e_dict)
-            draft.draft_string = e_string
-            exam = Exam.objects.latest()
-            draft.exam = exam
-            draft.save()
-            print('完成快照创建！快照id：', draft.id)
-            result = {'result': True}
-        else:
-            print(form.errors)
-            result = {'result': False}
-        return JsonResponse(result)
+        def case1():
+            raw = Choice.objects.filter(
+                courseID=courseID, is_single=True).values_list('sec', flat=True)
+            clean_secs = sorted(list(set(raw)))
+            return clean_secs
+
+        def case2():
+            raw = Choice.objects.filter(
+                courseID=courseID, is_single=False).values_list('sec', flat=True)
+            clean_secs = sorted(list(set(raw)))
+            return clean_secs
+
+        def case3():
+            raw = Judge.objects.filter(
+                courseID=courseID).values_list('sec', flat=True)
+            clean_secs = sorted(list(set(raw)))
+            return clean_secs
+
+        def case4():
+
+            raw = S_answer.objects.filter(
+                courseID=courseID).values_list('sec', flat=True)
+            clean_secs = sorted(list(set(raw)))
+            return clean_secs
+
+        def case5():
+            raw = Blank.objects.filter(
+                courseID=courseID).values_list('sec', flat=True)
+            clean_secs = sorted(list(set(raw)))
+            return clean_secs
+
+        switch = {
+            's_choice': case1,
+            'm_choice': case2,
+            'judge': case3,
+            's_answer': case4,
+            'blank': case5,
+        }
+
+        courseID = request.POST['courseID']
+        e_type = ['s_choice', 'm_choice', 'judge', 's_answer', 'blank']
+        secs = {}
+        for e in e_type:
+            secs[e] = switch[e]()
+        print(secs)
+        return render(request, 'partials/auto_gen.html', {'secs': secs})
 
 
 @is_teacher
 def exam_auto_generate(request):
     if request.method == 'POST':
 
-        def pickle_in_random(querysets, length, count, e_type):
+        def pickle_in_random(secs_length, secs, count, e_type, id_list, per):
             """
-            querysets:调用函数需要提供的试题QuerySet对象
-            length:QuerySet对象总长度
+            secs: 所有章节
+            secs_length:各章节试题数
             count:需要随机组合的试题数
             e_type:当前题型
+            id_list: 当前题型的试题id矩阵
+            per: 考点分布数组
             """
-            this = es[e_type]
             print('\ncurrent:', e_type)
-            if length > count:
-                current_rate = 0
-                flag = False
-                already_me = already[e_type]
-                print('已有试题组合：', already_me)
-                for k in range(0, 100):  # 随机上限100次， 下称百次循环
-                    this = {}
-                    current_list = []  # 存储当前随机组合
-                    pickle_list = [random.randint(0, length - 1)
-                                   for _ in range(count)]
-                    while len(set(pickle_list)) != count:
-                        pickle_list = [random.randint(0, length - 1)
-                                       for _ in range(count)]
-                        # pickle_list是序号组合，不是实际试题的id组合
-                    for pickle in pickle_list:
-                        this[querysets[pickle].id] = querysets[
-                            pickle].descri  # 将随机序号映射成实际id
-                        current_list.append(str(querysets[pickle].id))
-                    if already_me != []:
-                        print('当前试卷为课程的后续试卷')
+            current_rate = 0
+            flag = False
+            already_me = already[e_type]
+            print('已有试题组合：', already_me)
+
+            # max_row为章节总数,max_col为拥有最多试题的章节的试题数
+            max_row = len(secs)
+            max_col = max(secs_length)
+            id_matrix = np.zeros((max_row, max_col), dtype=int)
+            for row in range(max_row):
+                id_matrix[row, :len(id_list[row])] = id_list[row]
+            print('试题id矩阵:\n', id_matrix)
+
+            # 计算试题数矩阵
+            weight = np.array(per, dtype=float)
+            num = np.floor(weight * count)
+            print('当前分布下的各章节试题数矩阵:\n', num)
+            margin = count - np.sum(num, dtype=int)
+            num[np.argmax(num)] += margin
+            print('误差补正后的各章节试题数矩阵:\n', num)
+            mask = np.zeros([max_row, max_col], dtype=int)
+            try:
+                for i in range(len(secs_length)):
+                    # sec_l为该章节的试题总数
+                    sec_l = secs_length[i]
+                    # x为该章节需要抽取的试题数
+                    x = int(num[i])
+                    rand = np.zeros(sec_l, dtype=int)
+                    one = np.ones(x, dtype=int)
+                    rand[:one.shape[0]] = one
+                    np.random.shuffle(rand)
+                    mask[i, :rand.shape[0]] = rand
+                print('蒙版矩阵:\n', mask)
+                mul = np.extract(mask, id_matrix)
+                print('蒙版结果:\n', mul)
+                current_list = mul.tolist()
+                print('列表输出：\n', current_list)
+                if already_me != []:
+                    current_rate = 0
+                    print('当前试卷为课程的后续试卷')
+                    for iter in range(100):
                         for already_list in already_me:  # 随机组合在已有试题组内进行重复率比较
-                            print('\n%s.th round for %s' % (k + 1, e_type))
                             print('current_list:', current_list)
                             print('already_list:', already_list)
                             current_rate = len(set(current_list) &
                                                set(already_list)) / count
-                            if current_rate <= float(repeat_rate):
-                                print('success, current_rate:', current_rate)
-                                flag = True  # 成功找到一个组合，设置退出标志
-                                break
+                            if current_rate <= 0.25:
+                                flag = True
+                                continue
                             else:
                                 print('fail, current_rate:', current_rate)
-                                continue
-                        if flag:  # 100次随机任意一次成功，则退出百次循环
+                                flag = False
+                                break
+                        if flag:  # 通过全部已有试题组合的重复率匹配后退出循环
                             break
-                    else:  # 仅当存在已有试题组合时才循环随机
-                        print('当前试卷为课程的首张试卷')
-                        break
-                if k == 99:  # 100次随机仍然找不到符合条件，则随机失败， 反之成功，返回试题组合
-                    print('\nfail to random:%s \n' % e_type)
-                    return False
+                        else:  # 打乱蒙版中每行的顺序
+                            for row in max_row:
+                                np.random.shuffle(mask[row])
+                            mul = np.extract(mask, id_matrix)
+                            print('蒙版结果:\n', mul)
+                            current_list = mul.tolist()
+                            print('列表输出：\n', current_list)
+                            continue
+                    print('随机完毕')
                 else:
-                    print('find one for %s, repeat_rate: %d \n' %
-                          (e_type, current_rate))
-                    return this, current_rate
-            else:
-                return False
+                    print('当前试卷为课程的首张试卷')
+                return current_list, current_rate
 
-        def case1(courseID, e_type, count):
-            es[e_type] = {}
-            rpr[e_type] = {}
-            choices = Choice.objects.filter(courseID=courseID, is_single=True)
-            es[e_type], rpr[e_type] = pickle_in_random(
-                choices, choices.count(), count, e_type)
-            return es[e_type], rpr[e_type]
+            except ValueError as e:
+                print(e)
+                print('某些章节设定比重过高，对应试题量不足，请扩充题库')
+                return 0, 0
 
-        def case2(courseID, e_type, count):
-            es[e_type] = {}
-            rpr[e_type] = {}
-            choices = Choice.objects.filter(courseID=courseID, is_single=False)
-            es[e_type], rpr[e_type] = pickle_in_random(
-                choices, choices.count(), count, e_type)
-            return es[e_type], rpr[e_type]
+    def case1(courseID, e_type, count, per):
+        secs_length = []
+        id_list = []
+        secs = []
+        per = []
+        for sec in percentage:
+            secs.append(sec)
+            per.append(percentage[sec])
+        for sec in secs:
+            choices = Choice.objects.filter(courseID=courseID,
+                                            is_single=True, sec=sec).values_list('id', flat=True)
+            id_list.append(list(choices))
+            length = len(choices)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
 
-        def case3(courseID, e_type, count):
-            es[e_type] = {}
-            rpr[e_type] = {}
-            judges = Judge.objects.filter(courseID=courseID)
-            es[e_type], rpr[e_type] = pickle_in_random(
-                judges, judges.count(), count, e_type)
-            return es[e_type], rpr[e_type]
+        es[e_type], rpr[e_type] = pickle_in_random(
+            secs_length=secs_length, secs=secs, count=count, e_type=e_type, id_list=id_list, per=per)
+        return es[e_type], rpr[e_type]
 
-        def case4(courseID, e_type, count):
-            es[e_type] = {}
-            rpr[e_type] = {}
-            s_answers = S_answer.objects.filter(courseID=courseID)
-            es[e_type], rpr[e_type] = pickle_in_random(
-                s_answers, s_answers.count(), count, e_type)
-            return es[e_type], rpr[e_type]
+    def case2(courseID, e_type, count, per):
+        secs_length = []
+        id_list = []
+        secs = []
+        per = []
+        for sec in percentage:
+            secs.append(sec)
+            per.append(percentage[sec])
+        for sec in secs:
+            choices = Choice.objects.filter(courseID=courseID,
+                                            is_single=False, sec=sec).values_list('id', flat=True)
+            id_list.append(list(choices))
+            length = len(choices)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
 
-        def case5(courseID, e_type, count):
-            es[e_type] = {}
-            rpr[e_type] = {}
-            blanks = Blank.objects.filter(courseID=courseID)
-            es[e_type], rpr[e_type] = pickle_in_random(
-                blanks, blanks.count(), count, e_type)
-            return es[e_type], rpr[e_type]
+        es[e_type], rpr[e_type] = pickle_in_random(
+            secs_length=secs_length, secs=secs, count=count, e_type=e_type, id_list=id_list, per=per)
+        return es[e_type], rpr[e_type]
 
-        switch = {
-            's-choice': case1,
-            'm-choice': case2,
-            'judge': case3,
-            's-answer': case4,
-            'blank': case5,
-        }
+    def case3(courseID, e_type, count, per):
+        secs_length = []
+        id_list = []
+        secs = []
+        per = []
+        for sec in percentage:
+            secs.append(sec)
+            per.append(percentage[sec])
+        for sec in secs:
+            judges = Judge.objects.filter(
+                courseID=courseID, sec=sec).values_list('id', flat=True)
+            id_list.append(list(judges))
+            length = len(judges)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
 
-        data = request.body.decode('utf-8')
-        json_request = json.loads(data)
-        courseID = json_request['courseID']
-        repeat_rate = json_request['repeat_rate']
-        e_dict = json_request['dict']
+        es[e_type], rpr[e_type] = pickle_in_random(
+            secs_length=secs_length, secs=secs, count=count, e_type=e_type, id_list=id_list, per=per)
+        return es[e_type], rpr[e_type]
 
-        drafts = Draft.objects.filter(
-            courseID=courseID).values('id', 'draft_string')
-        already = {'s-choice': [], 'm-choice': [],
-                   'judge': [], 's-answer': [], 'blank': []}
-        for d in drafts:
-            raw = json.loads(d['draft_string'])
-            for key in raw:
-                already[key].append(list(raw[key].keys()))
-        print(already)
-        print('查重率上限：', repeat_rate)
-        es = {}
-        rpr = {}
-        for e_type in e_dict:
-            count = int(e_dict[e_type])
-            es[e_type], rpr[e_type] = switch[e_type](courseID, e_type, count)
-        # print(es)
-        result = {'result': es, 'rpr': rpr}
-        return JsonResponse(result)
+    def case4(courseID, e_type, count, per):
+        secs_length = []
+        id_list = []
+        secs = []
+        per = []
+        for sec in percentage:
+            secs.append(sec)
+            per.append(percentage[sec])
+        for sec in secs:
+            s_answers = S_answer.objects.filter(
+                courseID=courseID, sec=sec).values_list('id', flat=True)
+            id_list.append(list(s_answers))
+            length = len(s_answers)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
+
+        es[e_type], rpr[e_type] = pickle_in_random(
+            secs_length=secs_length, secs=secs, count=count, e_type=e_type, id_list=id_list, per=per)
+        return es[e_type], rpr[e_type]
+
+    def case5(courseID, e_type, count, per):
+        secs_length = []
+        id_list = []
+        secs = []
+        per = []
+        for sec in percentage:
+            secs.append(sec)
+            per.append(percentage[sec])
+        for sec in secs:
+            blanks = Blank.objects.filter(
+                courseID=courseID, sec=sec).values_list('id', flat=True)
+            id_list.append(list(blanks))
+            length = len(blanks)
+            secs_length.append(length)
+        print('所有章节的试题数列表:\n', secs_length)
+        print('所有章节的试题列表:\n', id_list)
+
+        es[e_type], rpr[e_type] = pickle_in_random(
+            secs_length=secs_length, secs=secs, count=count, e_type=e_type, id_list=id_list, per=per)
+        return es[e_type], rpr[e_type]
+
+    switch = {
+        's-choice': case1,
+        'm-choice': case2,
+        'judge': case3,
+        's-answer': case4,
+        'blank': case5,
+    }
+    # 取回题目描述
+
+    def extra_case1(id_list):
+        id_desc = {}
+        querysets = Choice.objects.filter(
+            id__in=id_list).values('id', 'descri')
+        for one in querysets:
+            id_desc[one['id']] = one['descri']
+        return id_desc
+
+    def extra_case2(id_list):
+        id_desc = {}
+        querysets = Choice.objects.filter(
+            id__in=id_list).values('id', 'descri')
+        for one in querysets:
+            id_desc[one['id']] = one['descri']
+        return id_desc
+
+    def extra_case3(id_list):
+        id_desc = {}
+        querysets = Judge.objects.filter(
+            id__in=id_list).values('id', 'descri')
+        for one in querysets:
+            id_desc[one['id']] = one['descri']
+        return id_desc
+
+    def extra_case4(id_list):
+        id_desc = {}
+        querysets = S_answer.objects.filter(
+            id__in=id_list).values('id', 'descri')
+        for one in querysets:
+            id_desc[one['id']] = one['descri']
+        return id_desc
+
+    def extra_case5(id_list):
+        id_desc = {}
+        querysets = Blank.objects.filter(
+            id__in=id_list).values('id', 'descri')
+        for one in querysets:
+            id_desc[one['id']] = one['descri']
+        return id_desc
+
+    switch_extra = {
+        's-choice': extra_case1,
+        'm-choice': extra_case2,
+        'judge': extra_case3,
+        's-answer': extra_case4,
+        'blank': extra_case5,
+    }
+
+    data = request.body.decode('utf-8')
+    json_request = json.loads(data)
+    courseID = json_request['courseID']
+    e_dict = json_request['dict']
+    e_percentage = json_request['percentage']
+
+    drafts = Draft.objects.filter(
+        courseID=courseID).values_list('draft_string', flat=True)
+    already = {'s-choice': [], 'm-choice': [],
+               'judge': [], 's-answer': [], 'blank': []}
+    for d in drafts:
+        raw = json.loads(d['draft_string'])
+        for key in raw:
+            already[key].append(list(raw[key]))
+    print('已有试题组合：', already)
+
+    es = {}
+    rpr = {}
+    for e_type in e_dict:
+        count = int(e_dict[e_type])
+        percentage = e_percentage[e_type]
+        es[e_type], rpr[e_type] = switch[e_type](
+            courseID, e_type, count, percentage)
+    print('随机结果', es)
+    # 取回题目描述信息
+    details = {}
+    for e_type in es:
+        if es[e_type] == 0:
+            details[e_type] = False
+        else:
+            details[e_type] = switch_extra[e_type](es[e_type])
+    result = {'result': details, 'rpr': rpr}
+    return JsonResponse(result)
 
 
 class exam_build(Auth, LoginRequiredMixin, View):
@@ -289,6 +470,18 @@ class exam_build(Auth, LoginRequiredMixin, View):
                 switch[e_type](e_dict[e_type])
             print('完成试卷创建！试卷id：', exam.id)
             result = {'result': True}
+
+            form = DraftForm(data=json_request)
+            if form.is_valid():
+                draft = form.save(commit=False)
+                e_string = json.dumps(e_dict)
+                draft.draft_string = e_string
+                draft.exam = exam
+                draft.save()
+                print('完成快照创建！快照id：', draft.id)
+            else:
+                print(form.errors)
+
         else:
             print(form.errors)
             result = {'result': False}
@@ -393,27 +586,27 @@ def exam_retrieve(request):
 
         def case1():
             choices = Choice.objects.filter(id=e_id).values(
-                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'courseID')
+                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'sec', 'courseID')
             return choices
 
         def case2():
             choices = Choice.objects.filter(id=e_id).values(
-                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'courseID')
+                'descri', 'A', 'B', 'C', 'D', 'E', 'F', 'answer', 'sec', 'courseID')
             return choices
 
         def case3():
             judges = Judge.objects.filter(id=e_id).values(
-                'descri', 'answer', 'courseID')
+                'descri', 'answer', 'sec', 'courseID')
             return judges
 
         def case4():
             s_answers = S_answer.objects.filter(
-                id=e_id).values('descri', 'answer')
+                id=e_id).values('descri', 'sec', 'answer')
             return s_answers
 
         def case5():
             blanks = Blank.objects.filter(id=e_id).values(
-                'descri', 'blank1', 'blank2', 'blank3', 'blank4', 'blank5', 'courseID')
+                'descri', 'blank1', 'blank2', 'blank3', 'blank4', 'blank5', 'sec', 'courseID')
             return blanks
 
         switch = {
@@ -1089,7 +1282,6 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
 
 def matrix(request):
     if request.method == 'GET':
-        # 构造试题的id矩阵，保存每行列数用于下面的运算。各行在组成矩阵前需要后补零
         secs_length = []
         id_list = []
         secs = ['一', '二', '三', '四']

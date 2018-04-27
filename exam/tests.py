@@ -72,7 +72,6 @@ print("Output After Training:")
 print(l1)
 """
 
-rand = np.zeros(5, dtype=int)
-one = np.ones(2, dtype=int)
-rand[:one.shape[0]] = one
-print(rand.shape)
+rand = np.array([[0, 1, 1, 0, 1, 0, 0], [1, 0, 0, 0, 1, 0, 0]])
+print('rand:\n', rand)
+print('rand:\n', rand[1])

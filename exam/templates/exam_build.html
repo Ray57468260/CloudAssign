@@ -9,7 +9,6 @@
 		padding: 5px 5px;
 	}	
 </style>
-
 <div class="row">
 	<div class="col-md-12 border-left">
 		<section class="text-right">
@@ -55,11 +54,10 @@
 						<h3 class="sidelines text-center">
 							<span>第二步：配置试题</span>
 						</h3>
-						<!--手动配置-->
-						<button id="trigger-matrix" class="btn btn-small btn-navy">触发矩阵</button>
 						<button id="config-m-btn" class="btn btn-small btn-navy">手动配置</button>
 						<button id="config-a-btn" class="btn btn-small btn-navy">随机自动配置</button>
 
+						<!--手动配置-->
 						<div id="config-m" style="font-size: 16px;">
 							<label>增加题型：</label>
 								<select id="e-type" name="e-type" style="margin-bottom: 0px; height:33px;">
@@ -72,38 +70,6 @@
 								<span id="add-btn" class="fa fa-lg fa-plus-circle green" style="margin-left: 10px; cursor:pointer;"></span>
 						</div>
 						<div id="config-a" style="font-size: 16px;" hidden="hidden;">
-							<form id="config-a-form" class="form-inline">
-								<div class="form-group" style="margin: 10px">
-									<label>单选题：</label>
-									<input type="text" data-type="s-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
-								</div>
-								<div class="form-group" style="margin: 10px">
-									<label>多选题：</label>
-									<input type="text" data-type="m-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px"placeholder="数量">
-								</div>
-								<div class="form-group" style="margin: 10px">
-									<label>判断题：</label>
-									<input type="text" data-type="judge" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
-								</div>
-								<div class="form-group" style="margin: 10px">
-									<label>填空题：</label>
-									<input type="text" data-type="blank" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
-								</div>
-								<div class="form-group" style="margin: 10px">
-									<label>简答题：</label>
-									<input type="text" data-type="s-answer" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px" placeholder="数量">
-								</div>
-								<div class="form-group" style="margin: 10px">
-									<label>重复率上限：</label>
-									<select id="repeat-rate" name="repeat-rate" style="margin-bottom: 0px; height:33px;">
-										<option value="0.1">10%</option>
-										<option value="0.2">20%</option>
-										<option value="0.3">30%</option>
-									</select>
-								</div>
-							</form>
-							<button id="generate-a" class="btn btn-small btn-navy">生成随机试卷</button>
-							<p>注意：查重率过低会增加随机生成的处理时间，一定概率会导致随机失败</p>
 						</div>
 						<div id="e-type-list" class="col-md-12 inner-top-xs" style="">
 						</div>
@@ -122,7 +88,7 @@
 						<p>先从左侧栏中选择课程，然后从题库中筛选出试题加入试卷</p>
 					</div>
 					<div class="col-md-12" style="margin-top: 10px;">
-						<form action="/query" method="POST" id="query" class="form-inline">
+						<form action="{% url 'bank_query' %}" method="POST" id="query" class="form-inline">
 							{% csrf_token %}
 							<div class="form-group" style="margin-right: 10px;">
 								<label style="font-size: 16px;">题型：</label>
@@ -245,12 +211,24 @@
 
 {% block javascript %}
 <script src="{% static 'js/jquery.form.js' %}"></script>
+<link href="{% static 'jquery-ui/jquery.ui.labeledslider.css' %}" rel="stylesheet">
+<script src="{% static 'jquery-ui/jquery.ui.labeledslider.js' %}"></script>
 
+
+<!--随机生成子页面-->
 <script>
-	$("#trigger-matrix").click(function(){
-		$.get("{% url 'matrix' %}")
-	})
+jQuery.loadRandom = function(){
+		let csrftoken = $.cookie("csrftoken"),
+			courseID = $('#id_courseID').val(),
+			url = "{% url 'exam_auto_generate_page' %}";
+		$("#config-a").load(url, {'csrfmiddlewaretoken': csrftoken,'courseID':courseID});
+	}
+jQuery.loadRandom();
+$("#id_courseID").change(function(){
+	jQuery.loadRandom();
+})
 </script>
+
 <!--手动、自动配置切换-->
 <script>
 	$("#config-m-btn").click(function(){
@@ -425,53 +403,6 @@ $(document).ready(function(){
 })
 </script>
 
-<!--自动生成随机试卷-->
-<script>
-$("#generate-a").click(function(){
-	$("#e-type-list").append("<div id=\"randoming\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在加载试题...</span></div>")
-	var courseID = $("#id_courseID").val();
-	var repeat_rate = $("#repeat-rate").val();
-	var dict = {};
-	$("#config-a-form input").each(function(){
-		var e_type = $(this).data("type");
-		var count = $(this).val()||0;
-		if (count != 0){
-			dict[e_type] = count;
-	}
-	})
-	var data = {
-		'courseID': courseID,
-		'repeat_rate': repeat_rate,
-		dict,
-	}
-	var json = JSON.stringify(data)
-	$.ajax({
-	    url: "{% url 'exam_auto_generate' %}",
-	    type: "POST",
-	    headers: {"X-CSRFToken": $.cookie("csrftoken") },
-	    data: json,
-	    success: function(result){
-			$("#e-type-list").empty();
-			console.log(result)
-			$.each(result['result'], function(e_type, item){
-				jQuery.translate(e_type);
-				jQuery.e_type_add(e_type);
-				if (item==false){
-					alert("随机失败：请降低查重率上限、或减少随机题数、或扩充题库！")
-				}
-				$.each(item, function(id, descri){
-					jQuery.e_add(e_type, id, descri)
-				})
-			});
-			$.each(result['rpr'], function(e_type, item){
-				$("#"+e_type).parent().siblings(".rpr").text("查重率："+item*100+"%").show()
-			})
-	    }
-	});
-	$("#randoming").remove();
-})
-</script>
-
 <!--提交试卷信息，生成配分窗-->
 <script>
 $("#next-step").click(function(){
@@ -558,16 +489,6 @@ function CalPoint(){
 		    headers: {"X-CSRFToken": $.cookie("csrftoken") },
 		    data: json,
 		    success: function(result){
-		    	//保存快照
-				$.ajax({
-				    url: "{% url 'exam_draft' %}",
-				    type: "POST",
-				    headers: { "X-CSRFToken": $.cookie("csrftoken") },
-				    data: json,
-				    success: function(result){
-				    	console.log(result);
-				    }
-				});
 		    	location.href = "/exam/teacher/"+courseID+"/";
 		    }
 		});

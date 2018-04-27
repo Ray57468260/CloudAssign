@@ -3,8 +3,8 @@ from .views import *
 
 
 urlpatterns = [
-    path(r'teacher/build/draft/',
-         exam_draft.as_view(), name="exam_draft"),
+    path(r'teacher/build/auto/page/',
+         exam_auto_generate_page, name="exam_auto_generate_page"),
     path(r'teacher/build/auto/',
          exam_auto_generate, name="exam_auto_generate"),
     path(r'teacher/build/',

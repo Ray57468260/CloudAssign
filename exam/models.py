@@ -31,7 +31,7 @@ class Choice(models.Model):
     F = models.CharField(_('选项F'), max_length=255, blank=True)
     answer = models.CharField(_('答案'), max_length=4,
                               blank=True, help_text='参考形式：单选：A，多选：ABCD')
-    sec = models.CharField(_('考点'), max_length=255, blank=True)
+    sec = models.CharField(_('考点'), max_length=10, default=0)
     point = models.IntegerField(_('分值'), default=0)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 
@@ -42,6 +42,7 @@ class Judge(models.Model):
     descri = models.TextField(_('题干'))
     answer = models.BooleanField(
         _('答案'), blank=True, help_text='勾选表示正确，不勾选表示错误')
+    sec = models.CharField(_('考点'), max_length=10, default=0)
     point = models.IntegerField(_('分值'), default=0)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 
@@ -51,6 +52,7 @@ class S_answer(models.Model):
         Course, related_name='S_answer_courseID', on_delete=models.SET_NULL, blank=True, null=True)
     descri = models.TextField(_('题干'))
     answer = models.TextField(_('答案'), blank=True)
+    sec = models.CharField(_('考点'), max_length=10, default=0)
     point = models.IntegerField(_('分值'), default=0)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 
@@ -66,6 +68,7 @@ class Blank(models.Model):
     blank4 = models.CharField(_('空4'), max_length=255, blank=True)
     blank5 = models.CharField(_('空5'), max_length=255, blank=True)
     blank6 = models.CharField(_('空6'), max_length=255, blank=True)
+    sec = models.CharField(_('考点'), max_length=10, default=0)
     point = models.IntegerField(_('分值'), default=0)
     created_at = models.DateTimeField(_('created_time'), auto_now_add=True)
 
