@@ -753,8 +753,8 @@ def query_questions_unfinished(request):
                     pass
                 return JsonResponse(unfinished_list, safe=False)
         else:
-            result = {'result': False}
-            return JsonResponse(result)
+            result = []
+            return JsonResponse(result, safe=False)
 
 
 @login_required

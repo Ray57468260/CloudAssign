@@ -530,6 +530,12 @@ class exam_manage(Auth, LoginRequiredMixin, View):
 
         def cal_points(querysets):
             try:
+                """
+                points = list(querysets.values_list('point'))
+                points_arr = np.array(points)
+                points_addup = np.sum(points_arr)
+                return points_addup
+                """
                 count = querysets.count()
                 point = querysets[0].point
                 add_up = count * point
@@ -539,7 +545,8 @@ class exam_manage(Auth, LoginRequiredMixin, View):
         exam_id = request.POST['exam_id']
         exam_format = request.POST['format']
         exam = Exam.objects.get(id=exam_id)
-
+        print(request.POST)
+        print(exam.choices.all())
         s_choices = exam.choices.filter(is_single=True).order_by('?')
         m_choices = exam.choices.filter(is_single=False).order_by('?')
         blanks = exam.blanks.all().order_by('?')
@@ -553,7 +560,7 @@ class exam_manage(Auth, LoginRequiredMixin, View):
             'judges': cal_points(judges),
             's_answers': cal_points(s_answers),
         }
-
+        print(e_points)
         context = {
             'exam': exam,
             'e_points': e_points,
@@ -691,7 +698,7 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
                 row = sheet.row_values(n)
                 # 批量写入数据库， 需定制
                 WorkLish.append(Choice(courseID=course, is_single=True, descri=row[0], A=row[
-                                1], B=row[2], C=row[3], D=row[4], E=row[5], F=row[6], answer=row[7]))
+                                1], B=row[2], C=row[3], D=row[4], E=row[5], F=row[6], answer=row[7], sec=row[8]))
             Choice.objects.bulk_create(WorkLish)
             return {"result": True}
 
@@ -701,7 +708,7 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
                 row = sheet.row_values(n)
                 # 批量写入数据库， 需定制
                 WorkLish.append(Choice(courseID=course, is_single=False, descri=row[0], A=row[
-                                1], B=row[2], C=row[3], D=row[4], E=row[5], F=row[6], answer=row[7]))
+                                1], B=row[2], C=row[3], D=row[4], E=row[5], F=row[6], answer=row[7], sec=row[8]))
             Choice.objects.bulk_create(WorkLish)
             return {"result": True}
 
@@ -711,7 +718,7 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
                 row = sheet.row_values(n)
                 # 批量写入数据库， 需定制
                 WorkLish.append(
-                    Judge(courseID=course, descri=row[0], answer=row[1]))
+                    Judge(courseID=course, descri=row[0], answer=row[1], sec=row[2]))
             Judge.objects.bulk_create(WorkLish)
             return {"result": True}
 
@@ -721,7 +728,7 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
                 row = sheet.row_values(n)
                 # 批量写入数据库， 需定制
                 WorkLish.append(
-                    S_answer(courseID=course, descri=row[0], answer=row[1]))
+                    S_answer(courseID=course, descri=row[0], answer=row[1], sec=row[2]))
             S_answer.objects.bulk_create(WorkLish)
             return {"result": True}
 
@@ -731,7 +738,7 @@ class bank_bulk(Auth, LoginRequiredMixin, View):
                 row = sheet.row_values(n)
                 # 批量写入数据库， 需定制
                 WorkLish.append(Blank(courseID=course, descri=row[0], blank1=row[1], blank2=row[
-                                2], blank3=row[3], blank4=row[4], blank5=row[5], blank6=row[6]))
+                                2], blank3=row[3], blank4=row[4], blank5=row[5], blank6=row[6], sec=row[7]))
             Blank.objects.bulk_create(WorkLish)
             return {"result": True}
 
@@ -986,6 +993,7 @@ def bank_edit(request):
                 choice.E = form.cleaned_data['E']
                 choice.F = form.cleaned_data['F']
                 choice.answer = form.cleaned_data['answer']
+                choice.sec = form.cleaned_data['sec']
                 choice.save()
                 result = {'result': True}
             else:
@@ -1005,6 +1013,7 @@ def bank_edit(request):
                 choice.E = form.cleaned_data['D']
                 choice.F = form.cleaned_data['F']
                 choice.answer = form.cleaned_data['answer']
+                choice.sec = form.cleaned_data['sec']
                 choice.save()
                 print(form)
                 result = {'result': True}
@@ -1019,6 +1028,7 @@ def bank_edit(request):
                 judge = Judge.objects.get(id=e_id)
                 judge.descri = form.cleaned_data['descri']
                 judge.answer = form.cleaned_data['answer']
+                judge.sec = form.cleaned_data['sec']
                 print(form.cleaned_data['answer'])
                 print(form)
                 judge.save()
@@ -1034,6 +1044,7 @@ def bank_edit(request):
                 s_answer = S_answer.objects.get(id=e_id)
                 s_answer.descri = form.cleaned_data['descri']
                 s_answer.answer = form.cleaned_data['answer']
+                s_answer.sec = form.cleaned_data['sec']
                 s_answer.save()
                 result = {'result': True}
             else:
@@ -1052,6 +1063,7 @@ def bank_edit(request):
                 blank.blank4 = form.cleaned_data['blank4']
                 blank.blank5 = form.cleaned_data['blank5']
                 blank.blank6 = form.cleaned_data['blank6']
+                blank.sec = form.cleaned_data['sec']
                 blank.save()
                 result = {'result': True}
             else:
@@ -1236,18 +1248,18 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
                 doc = docx.Document(pre_file)
                 text = ''
                 for p in doc.paragraphs:
-                    p.text = re.sub((r'[0-9A-Z]+、 *'), ' ',
+                    p.text = re.sub((r'[0-9A-Z]+[、.．] *'), ' ',
                                     p.text)  # 替换选项标号和题目标号
                     p.text = re.sub((r' *（ *） *'), '（）', p.text)  # 替换中文带空格括号
-                    p.text = re.sub((r' +'), ' ', p.text)  # 替换不间断空格
-                    p.text = re.sub((r'\t+'), '', p.text)  # 替换水平制表符(tab)
                     text = text + ' ' + p.text
+                print(text)
                 es = re.finditer((r"\{(.*?)\}"), text)  # 匹配预处理目标
 
                 # 写入到新的xls模板中
                 row = 1
                 for match in es:
-                    e = match.group(1).split(' ')
+                    # split()默认分隔符为所有的空字符，包括空格、换行(\n)、制表符(\t)等
+                    e = match.group(1).split()
                     col = 0
                     for i in e:
                         if i:
@@ -1278,57 +1290,3 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
             result = {'e_type_name': e_type_name,
                       'path': path, 'errors': errors}
             return JsonResponse(result)
-
-
-def matrix(request):
-    if request.method == 'GET':
-        secs_length = []
-        id_list = []
-        secs = ['一', '二', '三', '四']
-        for sec in secs:
-            choices = Choice.objects.filter(
-                is_single=True, sec=sec).values_list('id', flat=True)
-            id_list.append(list(choices))
-            length = len(choices)
-            secs_length.append(length)
-        print('所有章节的试题数列表:\n', secs_length)
-        print('所有章节的试题列表:\n', id_list)
-        # max_row为章节总数,max_col为拥有最多试题的章节的试题数
-        max_row = len(secs)
-        max_col = max(secs_length)
-        id_matrix = np.zeros((max_row, max_col), dtype=int)
-        for row in range(max_row):
-            id_matrix[row, :len(id_list[row])] = id_list[row]
-        print('试题id矩阵:\n', id_matrix)
-
-        # 考点分布
-        raw = [0.1, 0.3, 0.5, 0.2]
-        # 试题总数
-        count = 7
-        weight = np.array(raw, dtype=float)
-        # 试题分布
-        num = np.floor(weight * count)
-        print('当前分布下的各章节试题数矩阵:\n', num)
-        mask = np.zeros([max_row, max_col], dtype=int)
-        try:
-            for i in range(len(secs_length)):
-                # sec_l为该章节的试题总数
-                sec_l = secs_length[i]
-                # x为该章节需要抽取的试题数
-                x = int(num[i])
-                rand = np.zeros(sec_l, dtype=int)
-                one = np.ones(x, dtype=int)
-                rand[:one.shape[0]] = one
-                np.random.shuffle(rand)
-                print('当前随机行：\n', rand)
-                mask[i, :rand.shape[0]] = rand
-            print('蒙版矩阵:\n', mask)
-            mul = np.extract(mask, id_matrix)
-            print('蒙版结果:\n', mul)
-            print('列表输出：\n', mul.tolist())
-            result = {'result': True}
-        except ValueError as e:
-            result = {'result': '设定试题数过多，请扩充题库或减少试题数'}
-            print(e)
-            print(result)
-        return JsonResponse(result)

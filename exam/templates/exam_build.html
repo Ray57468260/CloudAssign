@@ -426,8 +426,8 @@ $("#next-step").click(function(){
 		$.each(dict, function(e_type, item){
 			jQuery.translate(e_type);
 			$distrib = $("#point-distrib");
-			$distrib.append("<div class=\"col-md-12\"><h3 data-id="+e_type+" class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer"+e_type+"\"></div></div>")
-			$distribList = $("#point-distrib-footer"+e_type);
+			$distrib.append("<div class=\"col-md-12\"><h3 data-id="+e_type+" class=\"modal-e-type sidelines text-center\"><span style=\"cursor: pointer\">"+e_type_name+"</span></h3><div class=\"col-md-10 text-center\"><span style=\"font-weight: bold;\">该题型每题分值：<input type=\"text\" style=\"height: 25px; width: 50px; margin-bottom: 10px; margin-right: 10px;\"class=\"bulk-point form-control\" oninput=\"BulkPoint()\"/></span></div><div id=\"point-distrib-footer-"+e_type+"\"></div></div>")
+			$distribList = $("#point-distrib-footer-"+e_type);
 			var eList = [];
 			$.each(item, function(e_id, descri){
 				eList += "<div class=\"col-md-12\" style=\"font-size: 14px;\"><span>分值：<input type=\"text\" class=\"e-point\"  style=\"height: 25px; width: 50px; margin-bottom: 0px; margin-right: 10px;\" data-id=\""+e_id+"\" class=\"form-control\" oninput=\"CalPoint()\"/></span><span>"+descri+"</span></div>"
@@ -461,12 +461,13 @@ function CalPoint(){
 
 <!--试卷上传-->
 <script>
-	$(".upload-btn").click(function(){
+	$(".upload-btn").on("click", function(){
 		var dict = {}
+		console.log($(".modal-e-type"))
 		$(".modal-e-type").each(function(){
 			var e_type = $(this).data("id");
 				dict[e_type] = {}
-			$(this).siblings(".col-md-12").each(function(){
+			$("#point-distrib-footer-"+e_type).children().each(function(){
 				var e_id = $(this).find("input").data("id"),
 					point = $(this).find("input").val();
 				dict[e_type][e_id] = point;
@@ -483,6 +484,7 @@ function CalPoint(){
 		},
 			json = JSON.stringify(data);
 		//上传试卷
+		console.log(json)
 		$.ajax({
 		    url: "{% url 'exam_build' %}",
 		    type: "POST",

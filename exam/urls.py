@@ -34,6 +34,4 @@ urlpatterns = [
     path(r'teacher/bank/export/',
          bank_export, name="bank_export"),
     path(r'tools/', extract_from_docx.as_view(), name="tools"),
-    path(r'teacher/build/matrix/',
-         matrix, name="matrix"),
 ]

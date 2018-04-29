@@ -268,6 +268,7 @@ new Vue({
 			data: formData,
 	})
 	.then(function(response){
+		console.log(response)
 		let $badge = $("#unfinished-bad");
 		$badge.text(response.data.length)
 		$.each(response.data, function(i, item){
