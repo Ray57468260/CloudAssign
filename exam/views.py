@@ -152,25 +152,24 @@ def exam_auto_generate(request):
             print('误差补正后的各章节试题数矩阵:\n', num)
             mask = np.zeros([max_row, max_col], dtype=int)
             try:
-                for i in range(len(secs_length)):
-                    # sec_l为该章节的试题总数
-                    sec_l = secs_length[i]
-                    # x为该章节需要抽取的试题数
-                    x = int(num[i])
-                    rand = np.zeros(sec_l, dtype=int)
-                    one = np.ones(x, dtype=int)
-                    rand[:one.shape[0]] = one
-                    np.random.shuffle(rand)
-                    mask[i, :rand.shape[0]] = rand
-                print('蒙版矩阵:\n', mask)
-                mul = np.extract(mask, id_matrix)
-                print('蒙版结果:\n', mul)
-                current_list = mul.tolist()
-                print('列表输出：\n', current_list)
-                if already_me != []:
-                    current_rate = 0
-                    print('当前试卷为课程的后续试卷')
-                    for iter in range(100):
+                for iter in range(100):
+                    for i in range(len(secs_length)):
+                        # sec_l为该章节的试题总数
+                        sec_l = secs_length[i]
+                        # x为该章节需要抽取的试题数
+                        x = int(num[i])
+                        rand = np.zeros(sec_l, dtype=int)
+                        one = np.ones(x, dtype=int)
+                        rand[:one.shape[0]] = one
+                        np.random.shuffle(rand)
+                        mask[i, :rand.shape[0]] = rand
+                    print('蒙版矩阵:\n', mask)
+                    mul = np.extract(mask, id_matrix)
+                    print('蒙版结果:\n', mul)
+                    current_list = mul.tolist()
+                    print('列表输出：\n', current_list)
+                    if already_me != []:
+                        print('当前试卷为课程的后续试卷')
                         for already_list in already_me:  # 随机组合在已有试题组内进行重复率比较
                             print('current_list:', current_list)
                             print('already_list:', already_list)
@@ -185,17 +184,13 @@ def exam_auto_generate(request):
                                 break
                         if flag:  # 通过全部已有试题组合的重复率匹配后退出循环
                             break
-                        else:  # 打乱蒙版中每行的顺序
-                            for row in range(max_row):
-                                np.random.shuffle(mask[row])
-                            mul = np.extract(mask, id_matrix)
-                            print('蒙版结果:\n', mul)
-                            current_list = mul.tolist()
-                            print('列表输出：\n', current_list)
+                        else:
                             continue
-                    print('随机完毕, current_rate:', current_rate)
-                else:
-                    print('当前试卷为课程的首张试卷')
+                    else:
+                        print('当前试卷为课程的首张试卷')
+                        current_rate = 0
+                        break
+                print('随机完毕, current_rate:', current_rate)
                 return current_list, current_rate
 
             except ValueError as e:
