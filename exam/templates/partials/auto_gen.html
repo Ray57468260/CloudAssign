@@ -1,0 +1,184 @@
+
+{% load static %}
+
+
+<style>
+.form-group input {
+	margin-right:10px;
+}
+.slider {
+	margin-top: 0px;
+	margin-bottom: 20px;
+	margin-left: -100px;
+	margin-right: 10px;
+}
+.slider div {
+	margin-left: 20px;
+	margin-top: 10px;
+   height: 80px;
+   display: inline-block;
+}
+</style>
+
+<form id="config-a-form" class="form-inline">
+	<div class="form-group" style="display: block">
+		<label>单选题：</label>
+		<input type="text" data-type="s-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px;" placeholder="数量">
+		<a href="javascript:void(0)" onclick="$('#s-choice-slider').toggle()">配置各章比重<span class="fa fa-caret-down" style="margin-left: 5px;"></span></a>
+		<div id="s-choice-slider" class="slider" style="display: none;">
+			{% for sec in secs.s_choice %}
+			<div data-id="{{ sec }}"></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="form-group">
+		<label>多选题：</label>
+		<input type="text" data-type="m-choice" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px;" placeholder="数量">
+		<a href="javascript:void(0)" onclick="$('#m-choice-slider').toggle()">配置各章比重<span class="fa fa-caret-down" style="margin-left: 5px;"></span></a>
+		<div id="m-choice-slider" class="slider" style="display: none;">
+			{% for sec in secs.m_choice %}
+			<div data-id="{{ sec }}"></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="form-group">
+		<label>判断题：</label>
+		<input type="text" data-type="judge" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px;" placeholder="数量">
+		<a href="javascript:void(0)" onclick="$('#judge-slider').toggle()">配置各章比重<span class="fa fa-caret-down" style="margin-left: 5px;"></span></a>
+		<div id="judge-slider" class="slider" style="display: none;">
+			{% for sec in secs.judge %}
+			<div data-id="{{ sec }}"></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="form-group">
+		<label>填空题：</label>
+		<input type="text" data-type="blank" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px;" placeholder="数量">
+		<a href="javascript:void(0)" onclick="$('#blank-slider').toggle()">配置各章比重<span class="fa fa-caret-down" style="margin-left: 5px;"></span></a>
+		<div id="blank-slider" class="slider" style="display: none;">
+			{% for sec in secs.blank %}
+			<div data-id="{{ sec }}"></div>
+			{% endfor %}
+		</div>
+	</div>
+	<div class="form-group">
+		<label>简答题：</label>
+		<input type="text" data-type="s-answer" class="form-control" style="width: 60px; height:30px; margin-bottom: 0px;" placeholder="数量">
+		<a href="javascript:void(0)" onclick="$('#s-answer-slider').toggle()">配置各章比重<span class="fa fa-caret-down" style="margin-left: 5px;"></span></a>
+		<div id="s-answer-slider" class="slider" style="display: none;">
+			{% for sec in secs.s_answer %}
+			<div data-id="{{ sec }}"></div>
+			{% endfor %}
+		</div>
+	</div>
+</form>
+<button id="generate-a" class="btn btn-small btn-navy">生成随机试卷</button>
+
+<!--滑块 -->
+
+<script>
+	$(function(){
+		$("#s-choice-slider > div").each(function() {
+			let mark = $(this).data("id"),
+				labels = [mark, '了解', '熟悉', '掌握', '完全'];
+		    labels = labels.concat(labels).concat(labels);
+		   $(this).labeledslider({ max: 4, step: 1, orientation: 'vertical'}).labeledslider( 'option', 'tickLabels', labels );
+		});
+		$("#m-choice-slider > div").each(function() {
+			let mark = $(this).data("id"),
+				labels = [mark, '了解', '熟悉', '掌握', '完全'];
+		    labels = labels.concat(labels).concat(labels);
+		   $(this).labeledslider({ max: 4, step: 1, orientation: 'vertical'}).labeledslider( 'option', 'tickLabels', labels );
+		});
+		$("#judge-slider > div").each(function() {
+			let mark = $(this).data("id"),
+				labels = [mark, '了解', '熟悉', '掌握', '完全'];
+		    labels = labels.concat(labels).concat(labels);
+		   $(this).labeledslider({ max: 4, step: 1, orientation: 'vertical'}).labeledslider( 'option', 'tickLabels', labels );
+		});
+		$("#blank-slider > div").each(function() {
+			let mark = $(this).data("id"),
+				labels = [mark, '了解', '熟悉', '掌握', '完全'];
+		    labels = labels.concat(labels).concat(labels);
+		   $(this).labeledslider({ max: 4, step: 1, orientation: 'vertical'}).labeledslider( 'option', 'tickLabels', labels );
+		});
+		$("#s-answer-slider > div").each(function() {
+			let mark = $(this).data("id"),
+				labels = [mark, '了解', '熟悉', '掌握', '完全'];
+		    labels = labels.concat(labels).concat(labels);
+		   $(this).labeledslider({ max: 4, step: 1, orientation: 'vertical'}).labeledslider( 'option', 'tickLabels', labels );
+		});
+	})
+</script>
+
+
+<!--自动生成随机试卷-->
+<script>
+$("#generate-a").click(function(){
+	$("#e-type-list").append("<div id=\"randoming\" class=\"text-center\" style=\"margin-top: 10px;\"><span class=\"fa fa-spinner fa-spin\"></span><span>&nbsp;&nbsp;正在加载试题...</span></div>")
+	var courseID = $("#id_courseID").val();
+	var dict = {};
+	$("#config-a-form input").each(function(){
+		var e_type = $(this).data("type");
+		var count = $(this).val()||0;
+		if (count != 0){
+			dict[e_type] = count;
+		}
+	})
+	var percentage = {},
+		$e_type = $("#config-a-form input");
+	$e_type.each(function(){
+		var e_type = $(this).data("type"),
+			$secs = $(this).siblings("div").children();
+			percentage[e_type] = {}
+		$secs.each(function(){
+			$sec = $(this).find(".ui-slider");
+			var sec = $sec.data("id"),
+				pix = parseFloat($sec.find("a").css("bottom"));
+			percentage[e_type][sec] = pix;
+		})
+	})
+	$.each(percentage, function(e_type, secs){
+		let addup = 0;
+		$.each(secs, function(sec, pix){
+			addup += pix * 1
+		});
+		console.log(addup);
+		$.each(secs, function(sec, pix){
+			let per = parseFloat(pix) / parseFloat(addup) || 0;
+			percentage[e_type][sec] = per
+		});
+	})
+	console.log(percentage);
+	var data = {
+		'courseID': courseID,
+		dict,
+		percentage,
+	}
+	var json = JSON.stringify(data)
+	$.ajax({
+	    url: "{% url 'exam_auto_generate' %}",
+	    type: "POST",
+	    headers: {"X-CSRFToken": $.cookie("csrftoken") },
+	    data: json,
+	    success: function(result){
+			$("#e-type-list").empty();
+			console.log(result)
+			$.each(result['result'], function(e_type, item){
+				jQuery.translate(e_type);
+				jQuery.e_type_add(e_type);
+				if (item==false){
+					alert("随机失败：某些章节设定比重过高，对应试题量不足，请扩充题库")
+				}
+				$.each(item, function(id, descri){
+					jQuery.e_add(e_type, id, descri)
+				})
+			});
+			$.each(result['rpr'], function(e_type, item){
+				$("#"+e_type).parent().siblings(".rpr").text("重复率："+item*100+"%").show()
+			})
+	    }
+	});
+	$("#randoming").remove();
+})
+</script>

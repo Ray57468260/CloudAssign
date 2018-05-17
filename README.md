@@ -1,16 +1,12 @@
-# uploadFiles
+﻿# CloudAssign
 
-1. learn from Vitor Freitas's website, mainly the two passages:
-- [How to Upload Files With Django](https://simpleisbetterthancomplex.com/tutorial/2016/08/01/how-to-upload-files-with-django.html)
-- [Django Multiple Files Upload Using Ajax](https://simpleisbetterthancomplex.com/tutorial/2016/11/22/django-multiple-file-upload-using-ajax.html)
+1. 一个基于Django框架的网络教学辅助系统
+- 暨南大学2014届信息工程本科毕业设计项目
+- 作者：邓焯锐，联系邮箱：ray57468260@gmail.com
+ 2.运行项目的Python虚拟环境
+- [env_CloudAssign](https://github.com/sibtc/simple-file-upload)
 
- 2.the codes from sibtc's on GitHub
-- [simple-file-upload](https://github.com/sibtc/simple-file-upload)
-- [multiple-file-upload](https://github.com/sibtc/multiple-file-upload)
+### 备忘录：
+- exam应用和左侧导航栏的一部分前端代码使用了Vue.js
+- 优化随机组卷算法的实现在exam应用的views.py文件内
 
-### 一些值得借鉴学习的东西：
-- simple-file-upload的实现比较简单
-- multiple-file-upload的实现设计JS/jQuery/Ajax以及关键插件[jQuery-File-Upload](https://github.com/blueimp/jQuery-File-Upload/tree/v9.18.0)
-
-- 插件学习参考文档[Documentation Overview](https://github.com/blueimp/jQuery-File-Upload/wiki)
-- 插件[API](https://github.com/blueimp/jQuery-File-Upload/wiki/API)

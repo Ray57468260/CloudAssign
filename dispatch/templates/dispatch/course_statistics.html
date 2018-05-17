@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% block title %}作业统计{% endblock title %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<style>
+p{
+	 font-size: 14px;
+	 margin-bottom: 0px;
+}
+</style>
+<div class="row">
+	<div class="col-md-12 inner-left-md border-left">
+	<section class="row inner-bottom-xs">
+		<div class="col-md-12 text-right">
+			<h2>课程数据</h2>
+			<p style="font-size:14px;">在这里您可以了解到课程中学生的表现</p>
+		</div>
+	</section>
+	<section class="border-top-lg">
+		<div class="row">
+			<div class="col-sm-12 inner-right-xs inner-bottom-xs">
+				<div class="inner-top-xs text-center">
+					<h2 class="sidelines text-center">
+						<span>课程：{{ course.course }}</span>
+					</h2>
+					<p>注意事项</p>
+					<p>①成绩趋势依据学生提交的作业评分进行统计，横轴代表提交时间，一次作业可以对应多次成绩</p>
+					<p>②评分对应关系：A++:95分&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A+:85分&nbsp;&nbsp;&nbsp;&nbsp;A:75分&nbsp;&nbsp;&nbsp;&nbsp;B:65分&nbsp;&nbsp;&nbsp;&nbsp;C:55分</p>
+					<p>③提交答案数包含所有被上传的答案（未评、已评、驳回）</p>
+					<p>④未交作业：未有任何答案上传的作业，未评、已评、驳回都算作已上传</p>
+					<p>⑤平均成绩取各次最好成绩计算</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="col-md-12 inner-top-xs">
+		<h4 class="sidelines text-center">
+			<span>课程整体数据</span>
+		</h4>
+		<div class="inner-top-xs">
+			<div id="course-trend" class="col-md-6" style="height: 400px; width:50%"></div>
+			<div id="count-trend" class="col-md-6" style="height: 400px; width:50%"></div>
+		</div>
+	</section>
+
+	<section class="col-md-12 inner-top-xs">
+		<h4 class="sidelines text-center">
+			<span>学生数据</span>
+		</h4>
+		<div class="inner-top-xs">
+			{% for student in students %}
+			<div class="row border-bottom">
+				<br \>
+				<h4>{{ student.name }}-{{ student.user_id }}</h4>
+				<div class="col-md-6">
+					<div id="{{ student.user_id }}-lineChart" style="height: 200px; width:100%"></div>
+				</div>
+				<div id="{{ student.user_id }}-perform" class="col-md-6">
+					<div class="col-md-6 text-center">
+						<h4 style="color: #1ABB9C">提交答案总数：<span class="uploaded-count"></span></h4>
+					</div>
+					<div class="col-md-6 text-center">
+						<h4 style="color: #d9534f">未交作业数：<span class="absence-count"></span></h4>
+					</div>
+					<div class="col-md-12 text-center">
+						<br \>
+						<h4>平均成绩：<span class="avg"></span></h4>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script src="{% static 'js/echarts.js' %}"></script>
+
+<!--学生表现-->
+<script>
+var students = [
+	{% for student in students %}
+	{{ student.user_id }},
+	{% endfor %}
+	];
+var students_str = JSON.stringify(students);
+var data = {
+	'students': students_str
+};
+$.ajax({
+	url: "count/",
+	type: "GET",
+	data: data,
+	success: function(result){
+		$.each(result, function(user_id, package){
+			$("#"+user_id+"-perform").find(".uploaded-count").text(package[0]['questionID__count'])
+			$("#"+user_id+"-perform").find(".absence-count").text(package[1]['absence'].length)
+		})
+	}
+});
+$.ajax({
+    url: "gradetrend/",
+    type: "GET",
+    data: data,
+    success: function(result) {   
+		$.each(result, function(user_id, package){
+			var lineChart = echarts.init($("#"+user_id+"-lineChart")[0], 'light');
+			//显示标题、图例和空的坐标轴
+			lineChart.setOption({
+				title: {
+			            text: '成绩趋势(最好成绩)',
+			            textStyle:{
+			            	fontFamily: 'Microsoft Yahei',
+			            	fontSize: 16,
+			            	color: '#73879C',
+			            }
+			        },
+			        tooltip: {},
+			        legend: {
+			        	right: 10,
+			            data:['分数']
+			        },
+			        xAxis: {
+			            data: [],
+			            axisLabel:{
+			            	rotate: -60,
+			            }
+			        },
+			        yAxis: { 
+			        	interval: 10,
+			            min: 55,
+			            max: 95,
+			        },
+			        series: [{
+			            name: '分数',
+			            type: 'line',
+			            data: []
+			        }]
+			});
+			//异步加载数据
+			lineChart.showLoading();
+			let categories = [];
+			let gradetrend = [];
+			$.each(package, function(i, item){
+				$.each(item, function(question, grade){
+					categories.push(question);
+					gradetrend.push(grade)
+				})
+			})
+			//计算平均分
+			let sum = 0;
+			gradetrend.forEach(function(value){
+				sum += value*1
+			})
+			let avg = sum/gradetrend.length
+			$("#"+user_id+"-perform").find(".avg").text(avg)
+
+			lineChart.hideLoading();
+			lineChart.setOption({
+				xAxis:{
+					data: categories
+				},
+				series:[{
+					data: gradetrend,
+					type: 'line',
+					name: '分数'
+				}]
+			})
+		})
+    }
+})
+</script>
+
+<script>
+var lineChartLeft = echarts.init($("#course-trend")[0], 'light');
+var lineChartRight = echarts.init($("#count-trend")[0], 'light');
+//显示标题、图例和空的坐标轴
+lineChartLeft.setOption({
+	title: {
+            text: '课程平均分趋势',
+            textStyle:{
+            	fontFamily: 'Microsoft Yahei',
+            	fontSize: 16,
+            	color: '#73879C',
+            }
+        },
+        tooltip: {},
+        legend: {
+        	right: 10,
+            data:['平均分']
+        },
+        xAxis: {
+            data: [],
+            axisLabel:{
+            	rotate: -60,
+            }
+        },
+        yAxis: {
+        	interval: 10,
+            min: 55,
+            max: 95,
+        },
+        series: [{
+            name: '平均分',
+            type: 'line',
+            data: []
+        }]
+});
+lineChartRight.setOption({
+	title: {
+            text: '答案提交数趋势',
+            textStyle:{
+            	fontFamily: 'Microsoft Yahei',
+            	fontSize: 16,
+            	color: '#73879C',
+            }
+        },
+        tooltip: {},
+        legend: {
+        	right: 10,
+            data:['提交数']
+        },
+        xAxis: {
+            data: [],
+            axisLabel:{
+            	rotate: -60,
+            }
+        },
+        yAxis: {},
+        series: [{
+            name: '提交数',
+            type: 'line',
+            data: [],
+            lineStyle:{
+            	normal:{
+            		type: 'dashed'
+            	}
+            },
+            symbol: 'circle',
+            symbolSize: 10,
+        }]
+});
+//异步加载数据
+lineChartLeft.showLoading();
+lineChartRight.showLoading();
+$.get("ctrend/").done(function(result){
+	let categories = [];
+	let countTrend = [];
+	let gradeTrend = [];
+	$.each(result, function(i, item){
+		categories.push(i)
+		countTrend.push(item[0]['answers_count'])
+		gradeTrend.push(item[1]['grade__avg'])
+	})
+	lineChartLeft.hideLoading();
+	lineChartLeft.setOption({
+		xAxis:{
+			data: categories
+		},
+		series:[{
+			name: '平均分',
+			type: 'line',
+			data: gradeTrend,
+		}]
+	})
+	lineChartRight.hideLoading();
+	lineChartRight.setOption({
+		xAxis:{
+			data: categories
+		},
+		series:[{
+			name: '提交数',
+			type: 'line',
+			data: countTrend,
+		}]
+	})
+})
+</script>
+{% endblock javascript %}
+

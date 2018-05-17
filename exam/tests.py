@@ -72,6 +72,6 @@ print("Output After Training:")
 print(l1)
 """
 
-rand = np.array([[0, 1, 1, 0, 1, 0, 0], [1, 0, 0, 0, 1, 0, 0]])
-print('rand:\n', rand)
-print('rand:\n', rand[1])
+a = [1, 2, 3, 4, 5]
+b = ['1', '2', '3', '4']
+print(set(a) & set(b))

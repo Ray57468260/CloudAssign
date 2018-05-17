@@ -13,6 +13,7 @@ from .models import *
 from users.models import User
 from dispatch.models import Course
 import random
+import time
 import json
 import xlrd
 import xlwt
@@ -179,20 +180,20 @@ def exam_auto_generate(request):
                                 flag = True
                                 continue
                             else:
-                                print('fail, current_rate:', current_rate)
+                                print('随机失败, current_rate:', current_rate)
                                 flag = False
                                 break
                         if flag:  # 通过全部已有试题组合的重复率匹配后退出循环
                             break
                         else:  # 打乱蒙版中每行的顺序
-                            for row in max_row:
+                            for row in range(max_row):
                                 np.random.shuffle(mask[row])
                             mul = np.extract(mask, id_matrix)
                             print('蒙版结果:\n', mul)
                             current_list = mul.tolist()
                             print('列表输出：\n', current_list)
                             continue
-                    print('随机完毕')
+                    print('随机完毕, current_rate:', current_rate)
                 else:
                     print('当前试卷为课程的首张试卷')
                 return current_list, current_rate
@@ -200,7 +201,7 @@ def exam_auto_generate(request):
             except ValueError as e:
                 print(e)
                 print('某些章节设定比重过高，对应试题量不足，请扩充题库')
-                return 0, 0
+                return [], 0
 
     def case1(courseID, e_type, count, per):
         secs_length = []
@@ -374,10 +375,14 @@ def exam_auto_generate(request):
         courseID=courseID).values_list('draft_string', flat=True)
     already = {'s-choice': [], 'm-choice': [],
                'judge': [], 's-answer': [], 'blank': []}
+
+    start = time.time()
     for d in drafts:
-        raw = json.loads(d['draft_string'])
+        raw = json.loads(d)
+        print(raw)
         for key in raw:
-            already[key].append(list(raw[key]))
+            already[key].append(map(eval, list(raw[key])))
+            print(list(already[key]))
     print('已有试题组合：', already)
 
     es = {}
@@ -388,6 +393,8 @@ def exam_auto_generate(request):
         es[e_type], rpr[e_type] = switch[e_type](
             courseID, e_type, count, percentage)
     print('随机结果', es)
+    end = time.time()
+    print('随机执行时间：', end - start)
     # 取回题目描述信息
     details = {}
     for e_type in es:
@@ -530,16 +537,10 @@ class exam_manage(Auth, LoginRequiredMixin, View):
 
         def cal_points(querysets):
             try:
-                """
                 points = list(querysets.values_list('point'))
                 points_arr = np.array(points)
                 points_addup = np.sum(points_arr)
                 return points_addup
-                """
-                count = querysets.count()
-                point = querysets[0].point
-                add_up = count * point
-                return add_up
             except IndexError:
                 pass
         exam_id = request.POST['exam_id']

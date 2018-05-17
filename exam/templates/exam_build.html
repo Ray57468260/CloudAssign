@@ -491,7 +491,11 @@ function CalPoint(){
 		    headers: {"X-CSRFToken": $.cookie("csrftoken") },
 		    data: json,
 		    success: function(result){
-		    	location.href = "/exam/teacher/"+courseID+"/";
+		    	console.log(result);
+		    	if (result.result == false){
+		    		alert('请填写试卷标题！')
+		    	}else{
+		    		location.href = "/exam/teacher/"+courseID+"/";}
 		    }
 		});
 	})
