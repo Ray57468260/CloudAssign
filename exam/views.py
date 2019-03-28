@@ -20,8 +20,14 @@ import xlwt
 import docx
 from docxtpl import DocxTemplate
 import re
-import pythoncom
-from win32com import client
+try:
+    import pythoncom
+except ImportError as e:
+    print(e)
+try:
+    from comtypes import client
+except ImportError:
+    client = None
 import os
 import numpy.matlib
 import numpy as np
@@ -515,20 +521,35 @@ class exam_manage(Auth, LoginRequiredMixin, View):
             """
             docx转pdf
             """
+            if client is None:
+                return doc2pdf_linux(doc)
             try:
                 pythoncom.CoInitialize()
-                word = client.Dispatch("Word.Application")
+                word = client.CreateObject("Word.Application")
                 new_name = doc.replace(".docx", r".pdf")
                 worddoc = word.Documents.Open(doc)
                 worddoc.SaveAs(new_name, FileFormat=17)
                 worddoc.Close()
                 pdf_path = path.replace(".docx", r".pdf")
+                word.Quit()
             except Exception as e:
                 print(e)
                 pdf_path = False
             finally:
-                word.Quit()
                 return pdf_path
+
+        def doc2pdf_linux(doc):
+            """
+            convert a doc/docx document to pdf format (linux only, requires libreoffice)
+            :param doc: path to document
+            """
+            cmd = 'libreoffice --convert-to pdf'.split() + [doc]
+            p = subprocess.Popen(
+                cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            p.wait(timeout=10)
+            stdout, stderr = p.communicate()
+            if stderr:
+                raise subprocess.SubprocessError(stderr)
 
         def cal_points(querysets):
             try:
