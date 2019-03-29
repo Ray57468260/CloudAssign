@@ -12,6 +12,7 @@ from .forms import *
 from .models import *
 from users.models import User
 from dispatch.models import Course
+import subprocess
 import random
 import time
 import json
@@ -20,8 +21,14 @@ import xlwt
 import docx
 from docxtpl import DocxTemplate
 import re
-import pythoncom
-from win32com import client
+try:
+	import pythoncom
+except ImportError as e:
+	print(e)
+try:
+    from comtypes import client
+except ImportError:
+    client=None
 import os
 import numpy.matlib
 import numpy as np
@@ -515,9 +522,11 @@ class exam_manage(Auth, LoginRequiredMixin, View):
             """
             docx转pdf
             """
+            if client==None:
+                return doc2pdf_linux(doc)
             try:
                 pythoncom.CoInitialize()
-                word = client.Dispatch("Word.Application")
+                word = client.CreateObject("Word.Application")
                 new_name = doc.replace(".docx", r".pdf")
                 worddoc = word.Documents.Open(doc)
                 worddoc.SaveAs(new_name, FileFormat=17)
@@ -529,6 +538,14 @@ class exam_manage(Auth, LoginRequiredMixin, View):
             finally:
                 word.Quit()
                 return pdf_path
+
+        def doc2pdf_linux(doc):
+            cmd = "libreoffice --convert-to pdf".split()+[doc]
+            p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            p.wait(timeout=10)
+            stdout, stderr=p.communicate()
+            if stderr:
+                raise subprocess.SubprocessError(stderr)
 
         def cal_points(querysets):
             try:
