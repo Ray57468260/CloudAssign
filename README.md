@@ -79,7 +79,12 @@ Linux系统：
 
 
 ### 安装数据库并配置
-1. 安装MySQL5.6版本，设置root密码为2014051903并创建一个名为project01的数据库；这些设置都可以在/CloudAssign/CloudAssign/settings.py中修改
+1. 安装MySQL5.6版本，设置如下：
+用户root，密码：2014051903；
+创建一个名为project01的数据库，务必设置数据库的默认编码为utf8：
+'CREATE DATABASE project01 CHARACTER SET utf8'；
+
+数据库用户、密码和数据库名都可以在/CloudAssign/CloudAssign/settings.py中修改
 
 2. 激活虚拟环境，使用以下命令创建系统运行所需数据表：
 'python manage.py migrate'
