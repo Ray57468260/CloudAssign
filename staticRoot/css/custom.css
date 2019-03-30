@@ -1,0 +1,46 @@
+
+
+/*===================================================================================*/
+/*	CUSTOM CSS STYLES
+/*===================================================================================*/
+
+/* Insert your own styles in here! */
+
+/*蓝色按钮,绝对定位*/
+.blueButton
+{
+    position: absolute;
+    display: block;
+    width: 100px;
+    height: 40px;
+    background-color: #00b3ee;
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+    font:normal normal normal 16px/40px 'Microsoft YaHei';
+    cursor: pointer;
+    border-radius: 4px;
+}
+.blueButton:hover
+{
+    text-decoration: none;
+}
+/*自定义上传,位置大小都和a完全一样,而且完全透明*/
+.myFileUpload
+{
+    position: absolute;
+    display: block;
+    width: 100px;
+    height: 40px;
+    opacity: 0;
+}
+/*显示上传文件夹名的Div*/
+.show
+{
+    position: absolute;
+    top:40px;
+    width: 100%;
+    height: 30px;
+    text-align:left;
+    font:normal normal normal 18px/30px 'Microsoft YaHei';
+}
