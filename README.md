@@ -1,51 +1,98 @@
-﻿# CloudAssign
+﻿---
+### 更新：2019/03/28
+重新编写了READ.MD，补充了移植到Linux系统的操作步骤；
+修改了exam应用的模块引用逻辑和生成试卷文件的逻辑，增加了对Linux系统的支持；
+更新了依赖列表requirements；添加了针对Linux系统的依赖列表requirements4linux；
 
-1. 一个基于Django框架的网络教学辅助系统
+***
+# CloudAssign-网络教学辅助系统
+
+### 创建时间：2018/05/25 
+1. 基于Django框架的网络教学辅助系统
 - 暨南大学2014届信息工程本科毕业设计项目
 - 作者：邓焯锐，联系邮箱：ray57468260@gmail.com
-2.关于项目的依赖库详情，查看requirements.txt
 
-### 移植开发环境的说明：
-0.从开发机器中移植虚拟环境
-使用以下命令生成依赖集成文件，请先确认已激活虚拟环境：
+2. 暨南大学石牌校区的师生可通过校内网络访问已部署的系统："http://172.18.59.57:8000"
 
-pip freeze > requirements.txt 
+### 我该怎样克隆该系统到我的机器中
+首先需要一个支持Django框架工作的系统环境（Windows10、Ubuntu 12或其他Linux系统）。
+按照以下步骤指引配置好你的系统环境，把本系统部署到本地机器中（部署上线需要Nginx与uwsgi，以后补充）
 
-1.在新设备中，使用本文件夹下的Python安装程序安装python3.6和pip。
+### 移植工作环境：
 
-2.添加python和pip到环境变量的PATH
-python的默认安装路径为C:\Users\Administrator\AppData\Local\Programs\Python\Python36；
-pip的默认安装路径为C:\Users\Administrator\AppData\Local\Programs\Python\Python36\Scripts；
-以上两个路径直接添加到PATH中，不需要再添加python.exe或pip.exe。
+1. 在新环境中安装python3.6.4与相应的pip，确认他们已经被添加到系统路径PATH中。
 
+>务必安装3.6.4版本的python，其他版本可能会出现不可预知的bug；已知3.6.5版本会在import process时出现bug；
 
-2.5手动安装pip步骤
-进入https://pypi.python.org/pypi/pip，下载匹配的pip版本（当前文件夹下已有10.0.1版本）
-解压下载的文件
-然后进入pip-10.0.1解压文件，执行python3 setup.py install,进行安装
+>Windows 10 系统中通过环境变量查看PATH变量，用户变量和系统变量任选一添加即可；
+
+>Linux系统中查看系统路径可使用命令：
+>'echo $PATH'
 
 
-3.安装虚拟环境包
-重启cmd或powershell后执行如下命令：
-pip install virtualenv
+2. 安装虚拟环境包
+
+Windows10系统，重开cmd或powershell后执行命令：
+'pip install virtualenv'
+
+Linux系统，在terminal中执行命令：
+'pip install virtualenv'
+
+>当系统存在多个版本的pip，上面的命令可能无效，通过指定pip版本可以解决问题
+>'pip3 install virtualenv'
 
 
-4.在新设备上安装依赖：
-使用以下命令创建新的虚拟环境：
+3. 创建虚拟环境并激活
+
+---
+创建新的虚拟环境：
 
 virtualenv nameofenv
 
-激活新的虚拟环境，然后在虚拟环境中使用以下命令安装所有依赖包（先导航到requirements.txt所在目录）：
+>当系统存在多个版本的python，上面的命令可能生成一个过时Python版本的虚拟环境，这一问题在默认安装python2.7的Ubuntu系统上更加明显。通过指定解释器版本创建与之相符的虚拟环境：
+>'virtualenv -p python3.6 nameofenv'
+>这里的python3.6是已添加到系统路径中的解释器
 
-pip install -r requirements.txt
+---
+激活新的虚拟环境
 
-5.就此完成开发环境的移植；
+Windows系统：
+'.../nameofenv/Scripts/activate'
+在cmd或power shell中可直接执行脚本
+
+Linux系统：
+'. .../nameofenv/bin/activate'
+>注意最前面是一个带空格的dot，表示执行shell脚本
+
+工作目录前出现(nameofenv)表示虚拟环境已激活，这会把虚拟环境中的python解释器和pip临时添加到系统路径的前两行
 
 
-移植数据库
-1.使用安装器安装MySQL5.6版本，root密码设置为2014051903，创建一个名为project01的库
+4. 安装依赖
 
-2.激活虚拟环境，使用以下命令创建表：
-python manage.py migrate
+激活虚拟环境后执行命令：
+'pip install -r requirements'
+
+>由于exam应用引入了基于Windows平台的python模块(comtypes、pythoncom)，以上依赖仅使用于Windows10系统；
+>Linux系统的依赖文件列表请使用requirements4linux；另外Linux还需安装LibreOffice实现对doc文档的操作：
+>'sudo apt-get install libreoffice'
 
 
+
+### 安装数据库并配置
+1. 安装MySQL5.6版本，设置如下：
+用户root，密码：2014051903；
+创建一个名为project01的数据库，务必设置数据库的默认编码为utf8：
+'CREATE DATABASE project01 CHARACTER SET utf8'；
+
+数据库用户、密码和数据库名都可以在/CloudAssign/CloudAssign/settings.py中修改
+
+2. 激活虚拟环境，使用以下命令创建系统运行所需数据表：
+'python manage.py migrate'
+
+### 运行本地测试服务器
+
+先启动MySQL服务，默认情况下MySQL服务都是开机自启动的；
+
+cmd/terminal执行命令：
+'python manage.py runserver'
+这会检查文件正确性，检查通过后将在本地创建一个wsgi服务器，通过浏览器输入127.0.0.1:8000可以访问到系统首页。
