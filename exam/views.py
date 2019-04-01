@@ -540,12 +540,13 @@ class exam_manage(Auth, LoginRequiredMixin, View):
                 return pdf_path
 
         def doc2pdf_linux(doc):
-            cmd = "libreoffice --convert-to pdf".split()+[doc]
-            p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            p.wait(timeout=10)
-            stdout, stderr=p.communicate()
-            if stderr:
-                raise subprocess.SubprocessError(stderr)
+            try:
+                cmd =[ "libreoffice","--convert-to pdf", doc]
+                p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                p.wait(timeout=10)
+                return path.replace('.docx',r'.pdf')
+            except Exception as e:
+                raise e
 
         def cal_points(querysets):
             try:
@@ -1243,7 +1244,7 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
         def docx_2_xls(e_type_name, pre_file):
             try:
                 # 读取模板
-                template = 'media/%s_批量导入模板.xls' % e_type_name
+                template = 'media/%s_template.xls' % e_type_name
                 workbook_temp = xlrd.open_workbook(template)
                 sheet_temp = workbook_temp.sheet_by_name('Sheet1')
                 row0 = sheet_temp.row_values(0)
@@ -1265,7 +1266,7 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
                                     p.text)  # 替换选项标号和题目标号
                     p.text = re.sub((r' *（ *） *'), '（）', p.text)  # 替换中文带空格括号
                     text = text + ' ' + p.text
-                print(text)
+                #print(text)
                 es = re.finditer((r"\{(.*?)\}"), text)  # 匹配预处理目标
 
                 # 写入到新的xls模板中
@@ -1290,7 +1291,7 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
                 errors = 'clear'
                 return path, errors
             except FileNotFoundError:
-                path = ''
+                path = 'media/%s_template.xls' % e_type_name
                 errors = 'wrong filename'
                 return path, errors
 
@@ -1298,7 +1299,7 @@ class extract_from_docx(Auth, LoginRequiredMixin, View):
         if form.is_valid():
             pre_file = request.FILES.get('file')
             e_type_name = pre_file.name.split('.')[0]
-            print(e_type_name, pre_file)
+            print(e_type_name)
             path, errors = docx_2_xls(e_type_name, pre_file)
             result = {'e_type_name': e_type_name,
                       'path': path, 'errors': errors}
