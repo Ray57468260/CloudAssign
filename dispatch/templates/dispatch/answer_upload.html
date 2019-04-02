@@ -21,7 +21,7 @@
 					<p style="font-size:16px;">来自课程：{{ question.0.courseID.course }}</p>
 					<p style="font-size:16px;">问题描述：{{ question.0.content }}</p>
 					{% if question.0.file %}
-						<a href="/media/{{ question.file }}" style="display:block; font-size:14px;">附件：{{ question.0.file | slice_filepath:1 }}</a><br/>
+						<a href="/media/{{ question.0.file }}" style="display:block; font-size:14px;">附件：{{ question.0.file | slice_filepath:1 }}</a><br/>
 	  				{% else %}
 	  					<p style="font-size:16px;">附件：无</p>
 	  				{% endif %}
